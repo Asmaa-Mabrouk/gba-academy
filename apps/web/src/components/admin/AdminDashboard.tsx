@@ -19,12 +19,12 @@ export function AdminDashboard() {
   return (
     <>
       <PageTitle>{a.nav.dashboard}</PageTitle>
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {cards.map(([l, v, sub]) => (
           <div key={l} className="card p-5"><p className="text-sm text-mute">{l}</p><p className="mt-1 text-2xl font-black text-navy">{v}</p>{sub && <p className="text-xs text-mute">{sub}</p>}</div>
         ))}
       </div>
-      <div className="mt-6 grid gap-6 lg:grid-cols-2">
+      <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-2">
         <Panel title={d.top}>
           <ol className="space-y-3">
             {s.topCourses.map((c, i) => (

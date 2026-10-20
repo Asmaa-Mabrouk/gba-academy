@@ -4,7 +4,7 @@ import { adminApi } from "@/lib/admin-api";
 import { dateOnly, num } from "@/lib/i18n";
 import type { Role } from "@/lib/types";
 import { useAdmin } from "./AdminShell";
-import { errorText, useLoad } from "./hooks";
+import { errorText, useLoad, failErr, okToast } from "./hooks";
 import { Badge, PageTitle, Table } from "./ui";
 
 export function AdminUsers() {
@@ -15,7 +15,7 @@ export function AdminUsers() {
   const [err, setErr] = useState("");
   const toggle = async (id: string, roles: Role[], r: Role) => {
     const next = roles.includes(r) ? roles.filter((x) => x !== r) : [...roles, r];
-    try { await adminApi.setRoles(token, id, next); setErr(""); reload(); } catch (e) { setErr(errorText(a, e)); }
+    try { await adminApi.setRoles(token, id, next); setErr(""); okToast(a.common.saved); reload(); } catch (e) { failErr(setErr, errorText(a, e)); }
   };
   const list = (data ?? []).filter((u) => !q || `${u.fullName} ${u.email}`.toLowerCase().includes(q.toLowerCase()));
   return (

@@ -10,7 +10,7 @@ Base URL: `/api/v1`. JSON. Auth: `Authorization: Bearer <jwt>` (token from login
 | GET | `/courses/{slug}` | `Course` or 404 `not_found` |
 | GET | `/courses/{slug}/reviews` | `Review[]`, newest first |
 | GET | `/mentors`, `/mentors/{slug}` | `Mentor` |
-| POST | `/auth/register` | Body `RegisterInput`. 409 `email_exists`, 400 `weak_password`. Returns `{token, user}` |
+| POST | `/auth/register` | Body `RegisterInput`. 409 `email_exists`, 400 `weak_password`, 400 `terms_required` (body needs `acceptedTerms: true` and `termsVersion`; stored in `user_consents`). Returns `{token, user}` |
 | POST | `/auth/login` | `{email, password}`. 401 `invalid_credentials`. Returns `{token, user}` |
 
 ## Signed in

@@ -40,10 +40,10 @@ export default async function Catalogue({ params, searchParams }: { params: Prom
 
   return (
     <>
-      <section className="bg-navy py-12 text-white">
+      <section className="band py-12 text-navy">
         <div className="container-x">
           <h1 className="text-4xl font-black gold-text">{t.catalogue.title}</h1>
-          <p className="mt-2 text-white/70">{t.catalogue.subtitle}</p>
+          <p className="mt-2 text-navy/70">{t.catalogue.subtitle}</p>
           <form action={`/${locale}/courses`} className="mt-6 flex max-w-2xl gap-2">
             {Object.entries(sp).filter(([k, v]) => k !== "q" && v).map(([k, v]) => <input key={k} type="hidden" name={k} value={v} />)}
             <input name="q" defaultValue={sp.q} placeholder={t.catalogue.searchPlaceholder} className="input !rounded-full !border-transparent text-ink" aria-label={t.nav.search} />

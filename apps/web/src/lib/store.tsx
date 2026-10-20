@@ -1,6 +1,7 @@
 "use client";
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 import { userApi } from "./api";
+import { ToastProvider } from "./toast";
 import type { Locale, OrderLine, RegisterInput, User } from "./types";
 
 interface AuthCtx {
@@ -62,7 +63,7 @@ export function Providers({ children }: { locale: Locale; children: ReactNode })
     has: (id) => lines.some((x) => x.offeringId === id),
   }), [lines]);
 
-  return <Auth.Provider value={auth}><Cart.Provider value={cart}>{children}</Cart.Provider></Auth.Provider>;
+  return <ToastProvider><Auth.Provider value={auth}><Cart.Provider value={cart}>{children}</Cart.Provider></Auth.Provider></ToastProvider>;
 }
 
 export function useAuth() { const c = useContext(Auth); if (!c) throw new Error("Providers missing"); return c; }

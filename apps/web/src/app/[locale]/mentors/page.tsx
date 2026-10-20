@@ -12,7 +12,7 @@ export default async function Mentors({ params }: { params: Promise<{ locale: st
   const mentors = await catalog.mentors();
   return (
     <>
-      <section className="bg-navy py-12 text-white"><div className="container-x"><h1 className="text-4xl font-black gold-text">{t.mentors.title}</h1><p className="mt-2 text-white/70">{t.mentors.subtitle}</p></div></section>
+      <section className="band py-12 text-navy"><div className="container-x"><h1 className="text-4xl font-black gold-text">{t.mentors.title}</h1><p className="mt-2 text-navy/70">{t.mentors.subtitle}</p></div></section>
       <div className="container-x grid gap-6 py-10 sm:grid-cols-2 lg:grid-cols-3">
         {mentors.map((m) => (
           <Link key={m.id} href={`/${locale}/mentors/${m.slug}`} className="card card-hover p-6">

@@ -20,7 +20,7 @@ import sa.gba.academy.common.Json;
 public class AuthController {
     public record RegisterRequest(@NotBlank String fullName, @NotBlank @Email String email, String mobile,
                                   @NotBlank String password, String locale, String registeringFor,
-                                  boolean marketingConsent) {}
+                                  boolean marketingConsent, boolean acceptedTerms, String termsVersion) {}
     public record LoginRequest(@NotBlank String email, @NotBlank String password) {}
 
     private static final String USER_JSON = """
@@ -39,6 +39,7 @@ public class AuthController {
     @PostMapping("/auth/register")
     public ResponseEntity<String> register(@Valid @RequestBody RegisterRequest r) {
         String pw = r.password();
+        if (!r.acceptedTerms()) throw new ApiException(HttpStatus.BAD_REQUEST, "terms_required");
         if (pw.length() < 8 || !pw.matches(".*[A-Za-z\\u0600-\\u06FF].*") || !pw.matches(".*\\d.*"))
             throw new ApiException(HttpStatus.BAD_REQUEST, "weak_password");
         boolean exists = db.sql("SELECT count(*) FROM users WHERE lower(email) = lower(:e)")
@@ -51,6 +52,11 @@ public class AuthController {
                 .param("m", r.mobile()).param("l", "en".equals(r.locale()) ? "en" : "ar")
                 .param("rf", "child".equals(r.registeringFor()) ? "child" : "self").param("mc", r.marketingConsent())
                 .query(UUID.class).single();
+        String ver = r.termsVersion() == null || r.termsVersion().isBlank() ? "unknown" : r.termsVersion();
+        for (String doc : List.of("terms", "privacy"))
+            db.sql("INSERT INTO user_consents(user_id, document, version) VALUES (:u, :d, :v)").param("u", id).param("d", doc).param("v", ver).update();
+        if (r.marketingConsent())
+            db.sql("INSERT INTO user_consents(user_id, document, version) VALUES (:u, 'marketing', :v)").param("u", id).param("v", ver).update();
         return session(id);
     }
 

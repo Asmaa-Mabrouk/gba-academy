@@ -42,7 +42,12 @@ const httpAdmin: AdminApi = {
 export const MK = { courses: "gba.admin.courses", mentors: "gba.admin.mentors", reviews: "gba.admin.reviews" };
 export const getCourses = () => read<Course[]>(MK.courses, COURSES.map((c) => ({ ...c, published: true })));
 export const getMentors = () => read<AdminMentor[]>(MK.mentors, MENTORS.map((m) => ({ ...m, userId: null, userEmail: m.id === "m1" ? "mentor@demo.sa" : null })));
-export const getReviews = () => read<Review[]>(MK.reviews, REVIEWS);
+/** Admin store plus reviews learners posted in mock mode (stored under K.reviews). */
+export const getReviews = () => {
+  const own = read<Review[]>(MK.reviews, REVIEWS);
+  const ids = new Set(own.map((r) => r.id));
+  return [...own, ...read<Review[]>(K.reviews, []).filter((r) => !ids.has(r.id))];
+};
 const uid = (p: string) => `${p}-${Math.random().toString(36).slice(2, 8)}`;
 const guard = (t: string) => {
   const u = seedUsers().find((x) => x.id === idOf(t));
@@ -105,7 +110,7 @@ const mockAdmin: AdminApi = {
     const courses = getCourses();
     return getReviews().map((r) => ({ ...r, courseTitle: courses.find((c) => c.slug === r.courseSlug)?.title ?? { ar: r.courseSlug, en: r.courseSlug } })).sort((a, b) => +new Date(b.createdAt) - +new Date(a.createdAt));
   },
-  async deleteReview(t, id) { guard(t); write(MK.reviews, getReviews().filter((r) => r.id !== id)); },
+  async deleteReview(t, id) { guard(t); write(MK.reviews, getReviews().filter((r) => r.id !== id)); write(K.reviews, read<Review[]>(K.reviews, []).filter((r) => r.id !== id)); },
   async replyReview(t, id, reply) { guard(t); write(MK.reviews, getReviews().map((r) => (r.id === id ? { ...r, mentorReply: reply ?? undefined } : r))); },
 };
 

@@ -105,7 +105,7 @@ export function read<T>(key: string, fallback: T): T {
 }
 export function write(key: string, v: unknown) { try { localStorage.setItem(key, JSON.stringify(v)); } catch { /* storage unavailable */ } }
 
-export interface StoredUser extends User { password: string }
+export interface StoredUser extends User { password: string; consent?: { termsVersion: string; acceptedAt: string; marketing: boolean } }
 export function seedUsers(): StoredUser[] {
   const u = read<StoredUser[]>(K.users, []);
   let changed = false;
@@ -122,12 +122,14 @@ const strip = ({ password: _p, ...u }: StoredUser): User => u;
 const tokenFor = (id: string) => `mock.${id}`;
 export const idOf = (t: string) => t.replace("mock.", "");
 
+const total0 = (lines: OrderLine[]) => lines.reduce((s, l) => s + l.priceHalalas, 0);
+
 const mockUser: UserApi = {
   async register(i) {
     const users = seedUsers();
     if (users.some((u) => u.email.toLowerCase() === i.email.toLowerCase())) throw new ApiError("email_exists");
     if (i.password.length < 8 || !/[A-Za-z؀-ۿ]/.test(i.password) || !/\d/.test(i.password)) throw new ApiError("weak_password");
-    const u: StoredUser = { id: `u-${Date.now()}`, fullName: i.fullName, email: i.email, mobile: i.mobile, locale: i.locale, roles: ["learner"], registeringFor: i.registeringFor, password: i.password };
+    const u: StoredUser = { id: `u-${Date.now()}`, fullName: i.fullName, email: i.email, mobile: i.mobile, locale: i.locale, roles: ["learner"], registeringFor: i.registeringFor, password: i.password, consent: { termsVersion: i.termsVersion, acceptedAt: new Date().toISOString(), marketing: i.marketingConsent } };
     write(K.users, [...users, u]);
     return { token: tokenFor(u.id), user: strip(u) };
   },
@@ -142,14 +144,16 @@ const mockUser: UserApi = {
   },
   async checkout(token, lines, method) {
     const uid = idOf(token);
-    await new Promise((r) => setTimeout(r, 1400)); // fake gateway latency
+    const owned = read<Record<string, Enrollment[]>>(K.enr, {})[uid] ?? [];
+    if (lines.some((l) => owned.some((e) => e.offeringId === l.offeringId))) throw new ApiError("already_enrolled");
+    await new Promise((r) => setTimeout(r, total0(lines) === 0 ? 200 : 1400)); // fake gateway latency (none for free courses)
     const total = lines.reduce((s, l) => s + l.priceHalalas, 0);
     const net = Math.round(total / (1 + VAT_RATE));
     const n = read<unknown[]>(K.orders, []).length + 1;
     const order: Order = {
       id: `o-${Date.now()}`, number: `GBA-${new Date().getFullYear()}-${String(n).padStart(5, "0")}`, status: "paid",
       lines, subtotalHalalas: net, vatHalalas: total - net, totalHalalas: total, paymentMethod: method,
-      createdAt: new Date().toISOString(), invoiceNumber: `INV-${String(n).padStart(6, "0")}`,
+      createdAt: new Date().toISOString(), invoiceNumber: total === 0 ? undefined : `INV-${String(n).padStart(6, "0")}`,
     };
     const buyer = seedUsers().find((x) => x.id === uid);
     write(K.orders, [...read<unknown[]>(K.orders, []), { ...order, userName: buyer?.fullName ?? "", userEmail: buyer?.email ?? "" }]);
@@ -183,6 +187,7 @@ const mockUser: UserApi = {
     const total = c.modules.reduce((s, m) => s + m.lessons.length, 0);
     if (!e.completedLessonIds.includes(lessonId)) e.completedLessonIds.push(lessonId);
     e.progressPct = Math.round((e.completedLessonIds.length / total) * 100);
+    if (e.progressPct === 100 && !e.completedAt) e.completedAt = new Date().toISOString();
     if (e.progressPct === 100 && !e.certificateCode) e.certificateCode = `GBA-${Math.random().toString(36).slice(2, 8).toUpperCase()}`;
     write(K.enr, all);
     return e;

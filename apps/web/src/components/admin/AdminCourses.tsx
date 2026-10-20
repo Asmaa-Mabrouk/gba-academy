@@ -5,7 +5,7 @@ import { adminApi } from "@/lib/admin-api";
 import { minPrice } from "@/lib/api";
 import { money, tr } from "@/lib/i18n";
 import { useAdmin } from "./AdminShell";
-import { errorText, useLoad } from "./hooks";
+import { errorText, useLoad, failErr } from "./hooks";
 import { Badge, PageTitle, Table } from "./ui";
 
 export function AdminCourses() {
@@ -14,7 +14,7 @@ export function AdminCourses() {
   const { data: mentors } = useLoad(() => adminApi.mentors(token), [token]);
   const [q, setQ] = useState("");
   const [err, setErr] = useState("");
-  const toggle = async (id: string, p: boolean) => { try { await adminApi.setPublished(token, id, p); reload(); } catch (e) { setErr(errorText(a, e)); } };
+  const toggle = async (id: string, p: boolean) => { try { await adminApi.setPublished(token, id, p); reload(); } catch (e) { failErr(setErr, errorText(a, e)); } };
   const list = (courses ?? []).filter((c) => !q || `${c.title.ar} ${c.title.en} ${c.slug}`.toLowerCase().includes(q.toLowerCase()));
   return (
     <>

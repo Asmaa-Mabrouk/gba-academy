@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { catalog } from "@/lib/api";
 import { money, tr, type Dict } from "@/lib/i18n";
 import { useAuth, useCart } from "@/lib/store";
+import { useToast } from "@/lib/toast";
 import { VAT_RATE, type Course, type Locale } from "@/lib/types";
 import { CourseCover } from "./CourseCover";
 
@@ -19,7 +20,9 @@ export function Summary({ total, locale, t }: { total: number; locale: Locale; t
 }
 
 export function CartView({ locale, t }: { locale: Locale; t: Dict }) {
-  const { lines, remove } = useCart();
+  const { lines, remove: rm } = useCart();
+  const toast = useToast();
+  const remove = (id: string) => { rm(id); toast.info(t.toast.removed); };
   const { user, ready } = useAuth();
   const [courses, setCourses] = useState<Record<string, Course>>({});
   useEffect(() => { catalog.courses().then((cs) => setCourses(Object.fromEntries(cs.map((c) => [c.slug, c])))); }, []);

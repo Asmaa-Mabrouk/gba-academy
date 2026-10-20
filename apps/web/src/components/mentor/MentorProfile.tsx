@@ -5,7 +5,7 @@ import type { AdminMentor } from "@/lib/types";
 import { Avatar } from "../Avatar";
 import { Bi } from "../admin/Bi";
 import { useAdmin } from "../admin/AdminShell";
-import { errorText, useLoad } from "../admin/hooks";
+import { errorText, useLoad, failMsg, okMsg } from "../admin/hooks";
 import { Field, PageTitle, Panel } from "../admin/ui";
 
 export function MentorProfile() {
@@ -16,7 +16,7 @@ export function MentorProfile() {
   useEffect(() => { if (data) setM(data); }, [data]);
   if (!m) return <p className="text-mute">{a.common.loading}</p>;
   const t = a.mentors;
-  const save = async () => { try { setM(await mentorApi.saveMe(token, m)); setMsg({ ok: true, text: a.common.saved }); } catch (e) { setMsg({ ok: false, text: errorText(a, e) }); } };
+  const save = async () => { try { setM(await mentorApi.saveMe(token, m)); okMsg(setMsg, a.common.saved); } catch (e) { failMsg(setMsg, errorText(a, e)); } };
   return (
     <>
       <PageTitle actions={<button className="btn btn-gold" onClick={save}>{a.common.save}</button>}>{a.mp.profile.title}</PageTitle>

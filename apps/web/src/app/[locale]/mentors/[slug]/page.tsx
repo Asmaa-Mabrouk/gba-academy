@@ -14,12 +14,12 @@ export default async function MentorPage({ params }: { params: Promise<{ locale:
   const courses = (await catalog.courses()).filter((c) => c.mentorId === m.id);
   return (
     <>
-      <section className="bg-navy py-14 text-white">
+      <section className="band py-14 text-navy">
         <div className="container-x flex flex-col items-start gap-6 sm:flex-row sm:items-center">
           <Avatar name={tr(m.name, locale)} hue={m.hue} size={120} />
           <div>
             <h1 className="text-4xl font-black gold-text">{tr(m.name, locale)}</h1>
-            <p className="mt-1 text-white/75">{tr(m.title, locale)}</p>
+            <p className="mt-1 text-navy/70">{tr(m.title, locale)}</p>
             <div className="mt-3 flex flex-wrap items-center gap-4 text-sm"><span className="flex items-center gap-2"><Stars value={m.rating} /> <b>{num(m.rating, locale)}</b> ({num(m.reviewCount, locale)})</span><span>{num(m.learners, locale)} {t.mentors.learners}</span><span>{num(courses.length, locale)} {t.mentors.courses}</span></div>
           </div>
         </div>

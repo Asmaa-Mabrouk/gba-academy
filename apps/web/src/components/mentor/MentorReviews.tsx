@@ -4,7 +4,7 @@ import { dateOnly, tr } from "@/lib/i18n";
 import { mentorApi } from "@/lib/mentor-api";
 import { Stars } from "../Stars";
 import { useAdmin } from "../admin/AdminShell";
-import { errorText, useLoad } from "../admin/hooks";
+import { errorText, useLoad, failErr, okToast } from "../admin/hooks";
 import { PageTitle } from "../admin/ui";
 
 export function MentorReviews() {
@@ -12,7 +12,7 @@ export function MentorReviews() {
   const { data, reload } = useLoad(() => mentorApi.reviews(token), [token]);
   const [reply, setReply] = useState<Record<string, string>>({});
   const [err, setErr] = useState("");
-  const run = async (fn: () => Promise<void>) => { try { await fn(); setErr(""); reload(); } catch (e) { setErr(errorText(a, e)); } };
+  const run = async (fn: () => Promise<void>) => { try { await fn(); setErr(""); okToast(a.common.saved); reload(); } catch (e) { failErr(setErr, errorText(a, e)); } };
   const t = a.reviews;
   return (
     <>

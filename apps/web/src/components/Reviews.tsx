@@ -1,8 +1,9 @@
 "use client";
 import { useEffect, useState } from "react";
-import { userApi } from "@/lib/api";
+import { ApiError, userApi } from "@/lib/api";
 import { dateOnly, num, tr, type Dict } from "@/lib/i18n";
 import { useAuth } from "@/lib/store";
+import { useToast } from "@/lib/toast";
 import type { Locale, Review } from "@/lib/types";
 import { Stars } from "./Stars";
 
@@ -12,14 +13,21 @@ export function Reviews({ slug, base, rating, count, locale, t }: { slug: string
   const [stars, setStars] = useState(5);
   const [text, setText] = useState("");
   const [msg, setMsg] = useState("");
+  const toast = useToast();
   useEffect(() => { userApi.extraReviews(slug).then(setExtra).catch(() => {}); }, [slug]);
   const all = [...extra, ...base];
   const submit = async () => {
-    if (!token || !user || !text.trim()) return;
+    if (!token || !user) return;
+    const c = text.trim();
+    const problem = !c ? t.v.reviewEmpty : c.length < 10 ? t.v.reviewShort : "";
+    if (problem) { setMsg(problem); toast.error(problem); return; }
     try {
-      const r = await userApi.addReview(token, slug, stars, text.trim(), user.fullName);
-      setExtra((e) => [r, ...e]); setText(""); setMsg("");
-    } catch { setMsg(t.course.reviewHint); }
+      const r = await userApi.addReview(token, slug, stars, c, user.fullName);
+      setExtra((e) => [r, ...e]); setText(""); setMsg(""); toast.success(t.toast.reviewPosted);
+    } catch (x) {
+      const m = x instanceof ApiError && x.code === "not_enrolled" ? t.v.reviewNeedEnroll : x instanceof TypeError ? t.toast.network : t.common.error;
+      setMsg(m); toast.error(m);
+    }
   };
   return (
     <section>
@@ -41,8 +49,8 @@ export function Reviews({ slug, base, rating, count, locale, t }: { slug: string
           <div className="my-2 flex items-center gap-1" role="radiogroup" aria-label={t.course.yourRating}>
             {[1, 2, 3, 4, 5].map((i) => <button key={i} onClick={() => setStars(i)} aria-label={`${i}`} className={`text-3xl ${i <= stars ? "text-gold" : "text-navy/15"}`}>★</button>)}
           </div>
-          <textarea className="input" rows={3} value={text} onChange={(e) => setText(e.target.value)} placeholder={t.course.yourComment} />
-          <div className="mt-3 flex items-center gap-3"><button className="btn btn-navy" onClick={submit}>{t.course.submit}</button><span className="text-sm text-mute">{msg || t.course.reviewHint}</span></div>
+          <textarea className={`input ${msg ? "input-error" : ""}`} rows={3} value={text} aria-invalid={!!msg} onChange={(e) => { setText(e.target.value); setMsg(""); }} placeholder={t.course.yourComment} />
+          <div className="mt-3 flex items-center gap-3"><button className="btn btn-navy" onClick={submit}>{t.course.submit}</button><span role={msg ? "alert" : undefined} className={`text-sm ${msg ? "font-medium text-red-700" : "text-mute"}`}>{msg ? `⚠ ${msg}` : t.course.reviewHint}</span></div>
         </div>
       )}
     </section>

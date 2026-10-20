@@ -7,7 +7,7 @@ import { num, tr } from "@/lib/i18n";
 import type { AdminMentor } from "@/lib/types";
 import { Bi } from "./Bi";
 import { useAdmin } from "./AdminShell";
-import { errorText, useLoad } from "./hooks";
+import { errorText, useLoad, failMsg } from "./hooks";
 import { Badge, Field, PageTitle, Panel, Table } from "./ui";
 
 const blank = (): AdminMentor => ({ id: "", slug: "", name: { ar: "", en: "" }, title: { ar: "", en: "" }, bio: { ar: "", en: "" }, expertise: [], languages: ["ar"], rating: 0, reviewCount: 0, courseCount: 0, learners: 0, hue: 40, userEmail: "" });
@@ -26,7 +26,7 @@ export function AdminMentors() {
     if (!edit) return;
     setMsg(null);
     try { await adminApi.saveMentor(token, edit, isNew); setEdit(null); reload(); }
-    catch (e) { setMsg({ ok: false, text: errorText(a, e) }); }
+    catch (e) { failMsg(setMsg, errorText(a, e)); }
   };
 
   if (edit)

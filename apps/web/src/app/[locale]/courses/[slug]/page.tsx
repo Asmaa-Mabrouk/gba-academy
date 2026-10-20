@@ -24,15 +24,15 @@ export default async function CoursePage({ params }: { params: Promise<{ locale:
 
   return (
     <>
-      <section className="relative overflow-hidden bg-navy text-white">
-        <CourseCover slug={course.slug} audience={course.audience} className="absolute inset-0 h-full w-full opacity-25" />
-        <div className="absolute inset-0 bg-gradient-to-b from-navy/70 to-navy" />
+      <section className="relative overflow-hidden band text-navy">
+        <CourseCover slug={course.slug} audience={course.audience} className="absolute inset-0 h-full w-full opacity-[.12]" />
+        <div className="absolute inset-0 bg-gradient-to-b from-cream/30 to-cream-2/80" />
         <div className="container-x relative py-14 lg:pe-[400px]">
-          <nav className="text-sm text-white/60"><Link href={`/${locale}/courses`} className="hover:text-gold-light">{t.nav.courses}</Link> / {t.audiences[course.audience].name}</nav>
+          <nav className="text-sm text-navy/60"><Link href={`/${locale}/courses`} className="hover:text-gold-deep">{t.nav.courses}</Link> / {t.audiences[course.audience].name}</nav>
           <h1 className="mt-3 text-3xl font-black leading-tight md:text-5xl">{tr(course.title, locale)}</h1>
-          <p className="mt-3 max-w-2xl text-lg text-white/80">{tr(course.subtitle, locale)}</p>
+          <p className="mt-3 max-w-2xl text-lg text-navy/75">{tr(course.subtitle, locale)}</p>
           <div className="mt-5 flex flex-wrap items-center gap-x-5 gap-y-2 text-sm">
-            <span className="flex items-center gap-2"><b className="text-gold-light">{num(course.rating, locale)}</b><Stars value={course.rating} size={15} />({num(course.reviewCount, locale)})</span>
+            <span className="flex items-center gap-2"><b className="text-gold-deep">{num(course.rating, locale)}</b><Stars value={course.rating} size={15} />({num(course.reviewCount, locale)})</span>
             <span>{num(course.learners, locale)} {t.common.learners}</span>
             <span>{num(course.hours, locale)} {t.common.hours}</span>
             <span>{t.levels[course.level]}</span>

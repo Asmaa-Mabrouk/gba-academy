@@ -119,6 +119,8 @@ export interface RegisterInput {
   locale: Locale;
   registeringFor: "self" | "child";
   marketingConsent: boolean;
+  acceptedTerms: boolean;
+  termsVersion: string;
 }
 
 export type PaymentMethod = "mada" | "applepay" | "card";
@@ -154,6 +156,7 @@ export interface Enrollment {
   progressPct: number;
   nextSession?: LiveSession;
   certificateCode?: string;
+  completedAt?: string;
 }
 
 export interface CourseFilters {

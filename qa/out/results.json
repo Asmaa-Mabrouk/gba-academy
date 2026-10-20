@@ -1,0 +1,1249 @@
+{
+ "base": "http://localhost:3100",
+ "passed": 207,
+ "total": 207,
+ "results": [
+  {
+   "id": "A01",
+   "name": "root redirects to /ar",
+   "pass": true,
+   "detail": "http://localhost:3100/ar"
+  },
+  {
+   "id": "A02",
+   "name": "Arabic page is rtl + lang=ar",
+   "pass": true,
+   "detail": ""
+  },
+  {
+   "id": "A03",
+   "name": "English page is ltr + lang=en",
+   "pass": true,
+   "detail": ""
+  },
+  {
+   "id": "A04",
+   "name": "English body font is Roboto",
+   "pass": true,
+   "detail": "Roboto, Tajawal, system-ui, sans-serif"
+  },
+  {
+   "id": "A05",
+   "name": "Arabic body font is Tajawal",
+   "pass": true,
+   "detail": "Tajawal, Roboto, system-ui, sans-serif"
+  },
+  {
+   "id": "A06",
+   "name": "language switch keeps path and query",
+   "pass": true,
+   "detail": "http://localhost:3100/en/courses?audience=kids"
+  },
+  {
+   "id": "A07",
+   "name": "home: 3 audience tracks",
+   "pass": true,
+   "detail": ""
+  },
+  {
+   "id": "A08",
+   "name": "home: featured courses (6 cards)",
+   "pass": true,
+   "detail": "16"
+  },
+  {
+   "id": "A09",
+   "name": "home: live sessions block lists upcoming sessions",
+   "pass": true,
+   "detail": ""
+  },
+  {
+   "id": "A10",
+   "name": "home: exactly one h1",
+   "pass": true,
+   "detail": ""
+  },
+  {
+   "id": "A11",
+   "name": "unknown route /ar/does-not-exist -> 404",
+   "pass": true,
+   "detail": "404"
+  },
+  {
+   "id": "A12",
+   "name": "unknown route /en/courses/nope -> 404",
+   "pass": true,
+   "detail": "404"
+  },
+  {
+   "id": "A13",
+   "name": "unknown route /fr -> 404",
+   "pass": true,
+   "detail": "404"
+  },
+  {
+   "id": "A14",
+   "name": "unknown route /en/mentors/nope -> 404",
+   "pass": true,
+   "detail": "404"
+  },
+  {
+   "id": "A20",
+   "name": "catalogue shows all 13 courses",
+   "pass": true,
+   "detail": "13"
+  },
+  {
+   "id": "A21-kids",
+   "name": "filter audience=kids -> 4",
+   "pass": true,
+   "detail": "4"
+  },
+  {
+   "id": "A21-youth",
+   "name": "filter audience=youth -> 4",
+   "pass": true,
+   "detail": "4"
+  },
+  {
+   "id": "A21-experts",
+   "name": "filter audience=experts -> 5",
+   "pass": true,
+   "detail": "5"
+  },
+  {
+   "id": "A22-recorded",
+   "name": "filter mode=recorded -> 9",
+   "pass": true,
+   "detail": "9"
+  },
+  {
+   "id": "A22-live",
+   "name": "filter mode=live -> 5",
+   "pass": true,
+   "detail": "5"
+  },
+  {
+   "id": "A22-blended",
+   "name": "filter mode=blended -> 8",
+   "pass": true,
+   "detail": "8"
+  },
+  {
+   "id": "A23-beginner",
+   "name": "filter level=beginner -> 5",
+   "pass": true,
+   "detail": "5"
+  },
+  {
+   "id": "A23-intermediate",
+   "name": "filter level=intermediate -> 6",
+   "pass": true,
+   "detail": "6"
+  },
+  {
+   "id": "A23-advanced",
+   "name": "filter level=advanced -> 2",
+   "pass": true,
+   "detail": "2"
+  },
+  {
+   "id": "A24-projects",
+   "name": "filter topic=projects -> 4",
+   "pass": true,
+   "detail": "4"
+  },
+  {
+   "id": "A24-finance",
+   "name": "filter topic=finance -> 1",
+   "pass": true,
+   "detail": "1"
+  },
+  {
+   "id": "A24-entrepreneurship",
+   "name": "filter topic=entrepreneurship -> 2",
+   "pass": true,
+   "detail": "2"
+  },
+  {
+   "id": "A24-creativity",
+   "name": "filter topic=creativity -> 1",
+   "pass": true,
+   "detail": "1"
+  },
+  {
+   "id": "A24-communication",
+   "name": "filter topic=communication -> 2",
+   "pass": true,
+   "detail": "2"
+  },
+  {
+   "id": "A24-technology",
+   "name": "filter topic=technology -> 2",
+   "pass": true,
+   "detail": "2"
+  },
+  {
+   "id": "A24-leadership",
+   "name": "filter topic=leadership -> 1",
+   "pass": true,
+   "detail": "1"
+  },
+  {
+   "id": "A25",
+   "name": "free only -> 1 and it is the free course",
+   "pass": true,
+   "detail": ""
+  },
+  {
+   "id": "A26",
+   "name": "Arabic search finds titles and subtitles",
+   "pass": true,
+   "detail": "2"
+  },
+  {
+   "id": "A27",
+   "name": "English search 'project'",
+   "pass": true,
+   "detail": "4"
+  },
+  {
+   "id": "A28",
+   "name": "no results message",
+   "pass": true,
+   "detail": ""
+  },
+  {
+   "id": "A29",
+   "name": "sort price low to high: cheapest first",
+   "pass": true,
+   "detail": "/en/courses/think-like-an-inventor"
+  },
+  {
+   "id": "A30",
+   "name": "sort price high to low: priciest first",
+   "pass": true,
+   "detail": "/en/courses/strategic-programme-leadership"
+  },
+  {
+   "id": "A31",
+   "name": "combined filters narrow results (<= experts total)",
+   "pass": true,
+   "detail": "1"
+  },
+  {
+   "id": "A32",
+   "name": "combined filters with no match -> empty state",
+   "pass": true,
+   "detail": ""
+  },
+  {
+   "id": "A33",
+   "name": "reset link clears filters",
+   "pass": true,
+   "detail": "13"
+  },
+  {
+   "id": "A34",
+   "name": "hostile query param does not break the page",
+   "pass": true,
+   "detail": ""
+  },
+  {
+   "id": "A35",
+   "name": "SQL-looking search is treated as text",
+   "pass": true,
+   "detail": ""
+  },
+  {
+   "id": "A40",
+   "name": "all course pages render with correct title and offering count",
+   "pass": true,
+   "detail": "[]"
+  },
+  {
+   "id": "A41-little-project-heroes",
+   "name": "Arabic course page shows Arabic title",
+   "pass": true,
+   "detail": ""
+  },
+  {
+   "id": "A41-young-money-wizards",
+   "name": "Arabic course page shows Arabic title",
+   "pass": true,
+   "detail": ""
+  },
+  {
+   "id": "A41-mini-ceo-workshop",
+   "name": "Arabic course page shows Arabic title",
+   "pass": true,
+   "detail": ""
+  },
+  {
+   "id": "A42",
+   "name": "selecting each offering updates the big price",
+   "pass": true,
+   "detail": "['SAR 299', 'SAR 499']"
+  },
+  {
+   "id": "A43",
+   "name": "blended offering lists live sessions with seats left",
+   "pass": true,
+   "detail": ""
+  },
+  {
+   "id": "A44",
+   "name": "kids course shows guardian note",
+   "pass": true,
+   "detail": ""
+  },
+  {
+   "id": "A45",
+   "name": "expert course shows CPD points",
+   "pass": true,
+   "detail": ""
+  },
+  {
+   "id": "A46",
+   "name": "syllabus is expandable and lists lessons",
+   "pass": true,
+   "detail": ""
+  },
+  {
+   "id": "A47",
+   "name": "course -> mentor profile link works",
+   "pass": true,
+   "detail": "http://localhost:3100/en/mentors/layla-al-harbi"
+  },
+  {
+   "id": "A50",
+   "name": "mentors list shows 6",
+   "pass": true,
+   "detail": "6"
+  },
+  {
+   "id": "A51",
+   "name": "every mentor profile renders with their courses",
+   "pass": true,
+   "detail": "[]"
+  },
+  {
+   "id": "B01",
+   "name": "anonymous My courses asks to log in",
+   "pass": true,
+   "detail": ""
+  },
+  {
+   "id": "B02",
+   "name": "anonymous learning page asks to log in",
+   "pass": true,
+   "detail": ""
+  },
+  {
+   "id": "B03",
+   "name": "anonymous checkout redirects to login with next",
+   "pass": true,
+   "detail": "http://localhost:3100/en/login?next=/en/checkout"
+  },
+  {
+   "id": "B04",
+   "name": "weak password rejected",
+   "pass": true,
+   "detail": ""
+  },
+  {
+   "id": "B05",
+   "name": "terms must be accepted",
+   "pass": true,
+   "detail": ""
+  },
+  {
+   "id": "B06",
+   "name": "valid registration lands on My courses",
+   "pass": true,
+   "detail": "http://localhost:3100/en/my-courses"
+  },
+  {
+   "id": "B07",
+   "name": "header shows Log out after registration",
+   "pass": true,
+   "detail": ""
+  },
+  {
+   "id": "B08",
+   "name": "session survives reload",
+   "pass": true,
+   "detail": ""
+  },
+  {
+   "id": "B09",
+   "name": "duplicate email rejected",
+   "pass": true,
+   "detail": ""
+  },
+  {
+   "id": "B10",
+   "name": "wrong password rejected",
+   "pass": true,
+   "detail": ""
+  },
+  {
+   "id": "B11",
+   "name": "unknown email rejected (same message)",
+   "pass": true,
+   "detail": ""
+  },
+  {
+   "id": "B12",
+   "name": "login is case-insensitive on email",
+   "pass": true,
+   "detail": "http://localhost:3100/en/my-courses"
+  },
+  {
+   "id": "B13",
+   "name": "guardian registration succeeds",
+   "pass": true,
+   "detail": "http://localhost:3100/en/my-courses"
+  },
+  {
+   "id": "B14",
+   "name": "login honours ?next=",
+   "pass": true,
+   "detail": "http://localhost:3100/en/cart"
+  },
+  {
+   "id": "B15",
+   "name": "?next= to another site is ignored (open redirect)",
+   "pass": true,
+   "detail": "http://localhost:3100/en/my-courses"
+  },
+  {
+   "id": "B16",
+   "name": "admin lands on /admin",
+   "pass": true,
+   "detail": "http://localhost:3100/en/admin"
+  },
+  {
+   "id": "B17",
+   "name": "mentor lands on /mentor",
+   "pass": true,
+   "detail": "http://localhost:3100/en/mentor"
+  },
+  {
+   "id": "B18",
+   "name": "mentor sees Mentor portal button, no Admin button",
+   "pass": true,
+   "detail": ""
+  },
+  {
+   "id": "B19",
+   "name": "learner lands on My courses, no portal buttons",
+   "pass": true,
+   "detail": "http://localhost:3100/en/my-courses"
+  },
+  {
+   "id": "B20-en-admin",
+   "name": "learner blocked from /en/admin",
+   "pass": true,
+   "detail": ""
+  },
+  {
+   "id": "B20-en-admin-courses",
+   "name": "learner blocked from /en/admin/courses",
+   "pass": true,
+   "detail": ""
+  },
+  {
+   "id": "B20-en-admin-courses-new",
+   "name": "learner blocked from /en/admin/courses/new",
+   "pass": true,
+   "detail": ""
+  },
+  {
+   "id": "B20-en-mentor",
+   "name": "learner blocked from /en/mentor",
+   "pass": true,
+   "detail": ""
+  },
+  {
+   "id": "B20-en-mentor-courses",
+   "name": "learner blocked from /en/mentor/courses",
+   "pass": true,
+   "detail": ""
+  },
+  {
+   "id": "B21",
+   "name": "admin without mentor role blocked from /mentor",
+   "pass": true,
+   "detail": ""
+  },
+  {
+   "id": "C01",
+   "name": "cart badge shows 1",
+   "pass": true,
+   "detail": ""
+  },
+  {
+   "id": "C02",
+   "name": "cart survives reload",
+   "pass": true,
+   "detail": ""
+  },
+  {
+   "id": "C03",
+   "name": "second offering of same course replaces the first",
+   "pass": true,
+   "detail": ""
+  },
+  {
+   "id": "C04",
+   "name": "two courses in cart",
+   "pass": true,
+   "detail": ""
+  },
+  {
+   "id": "C05",
+   "name": "cart total = sum of lines (VAT included)",
+   "pass": true,
+   "detail": "[499.0, 890.0, 1207.83, 181.17, 1389.0]"
+  },
+  {
+   "id": "C06",
+   "name": "cart splits VAT 15% correctly (net 1207.83 + VAT 181.17)",
+   "pass": true,
+   "detail": "[499.0, 890.0, 1207.83, 181.17, 1389.0]"
+  },
+  {
+   "id": "C07",
+   "name": "remove line works",
+   "pass": true,
+   "detail": ""
+  },
+  {
+   "id": "C08",
+   "name": "empty cart state",
+   "pass": true,
+   "detail": ""
+  },
+  {
+   "id": "C09",
+   "name": "checkout shows 3 payment methods",
+   "pass": true,
+   "detail": ""
+  },
+  {
+   "id": "C10",
+   "name": "Apple Pay hides card fields",
+   "pass": true,
+   "detail": ""
+  },
+  {
+   "id": "C10b",
+   "name": "payment is blocked until terms are accepted, with a clear error",
+   "pass": true,
+   "detail": ""
+  },
+  {
+   "id": "C10c",
+   "name": "invalid card number is rejected with a clear message",
+   "pass": true,
+   "detail": ""
+  },
+  {
+   "id": "C10d",
+   "name": "expired card is rejected with a clear message",
+   "pass": true,
+   "detail": ""
+  },
+  {
+   "id": "C11",
+   "name": "button shows processing state",
+   "pass": true,
+   "detail": ""
+  },
+  {
+   "id": "C12",
+   "name": "payment success page with order + invoice numbers",
+   "pass": true,
+   "detail": "\u2713\nPayment successful\n\nYour courses are unlocked. We emailed your invoice.\n\nEvery great project began with one step. Your"
+  },
+  {
+   "id": "C13",
+   "name": "cart is emptied after paying",
+   "pass": true,
+   "detail": ""
+  },
+  {
+   "id": "C14",
+   "name": "purchased course appears in My courses",
+   "pass": true,
+   "detail": ""
+  },
+  {
+   "id": "C15",
+   "name": "recorded course shows access end date",
+   "pass": true,
+   "detail": ""
+  },
+  {
+   "id": "C16",
+   "name": "buying a course you already own is refused",
+   "pass": true,
+   "detail": "Checkout\nPayment method\nmada\nApple Pay\nCredit card\n\n\ud83d\udd12 Secure payment. We never store your card details.\n\nThe payment her"
+  },
+  {
+   "id": "C17",
+   "name": "free course cart total shows Free",
+   "pass": true,
+   "detail": ""
+  },
+  {
+   "id": "C18",
+   "name": "free course can be 'bought' without an invoice",
+   "pass": true,
+   "detail": "\u2713\nPayment successful\n\nYour courses are unlocked. We emailed your invoice.\n\nEvery great project began with one step. Your"
+  },
+  {
+   "id": "C20",
+   "name": "learn page for a course not owned prompts to enrol",
+   "pass": true,
+   "detail": ""
+  },
+  {
+   "id": "C21",
+   "name": "learn page lists all lessons",
+   "pass": true,
+   "detail": "7"
+  },
+  {
+   "id": "C22",
+   "name": "completing every lesson reaches 100% and issues a certificate code",
+   "pass": true,
+   "detail": "\nScope on one page\n18\n\nThe plan\n\n\u2713\nSchedule and milestones\n20\n\u2713\nBudget and risk\n22\n\u2713\nModule quiz\n8\n\nThe pitch\n\n\u2713\nLive practice session\n60\n\u2713\nPortfolio template\n5"
+  },
+  {
+   "id": "C23",
+   "name": "finished course moves to Completed tab with certificate code",
+   "pass": true,
+   "detail": ""
+  },
+  {
+   "id": "C23b",
+   "name": "completed course shows a green 100% progress state",
+   "pass": true,
+   "detail": ""
+  },
+  {
+   "id": "C23c",
+   "name": "certificate shows learner, course, date, code, mentor and academy sign-off",
+   "pass": true,
+   "detail": "\u2190 Back to my courses\n\ud83d\udda8 Print / save as PDF\nGlobal Business Academy\nCertificate of Completion\n\nThis is to certify that\n\nQA Learner\n\nhas successfully completed the course\n\nCareer Launchpad: Project Basi"
+  },
+  {
+   "id": "C23d",
+   "name": "certificate has an academy stamp and two signature slots",
+   "pass": true,
+   "detail": ""
+  },
+  {
+   "id": "C23e",
+   "name": "print button present",
+   "pass": true,
+   "detail": ""
+  },
+  {
+   "id": "C23f",
+   "name": "unknown certificate code says not found",
+   "pass": true,
+   "detail": ""
+  },
+  {
+   "id": "C24a",
+   "name": "too-short review is rejected with a clear message",
+   "pass": true,
+   "detail": ""
+  },
+  {
+   "id": "C24",
+   "name": "enrolled learner can post a review and it appears",
+   "pass": true,
+   "detail": ""
+  },
+  {
+   "id": "C25",
+   "name": "non-enrolled learner cannot post a review",
+   "pass": true,
+   "detail": "s every week on planning, reporting and risk analysis\n\nKhalid Al-Mansour\n\n4.7\n(73)\n6 hours\nSAR 1,190"
+  },
+  {
+   "id": "C26",
+   "name": "anonymous visitors see no review form",
+   "pass": true,
+   "detail": ""
+  },
+  {
+   "id": "D01",
+   "name": "dashboard renders stat cards",
+   "pass": true,
+   "detail": ""
+  },
+  {
+   "id": "D02",
+   "name": "dashboard counts 13 courses and 6 mentors",
+   "pass": true,
+   "detail": "ADMIN PORTAL\n\n\u25a6\nOverview\n\u25a4\nCourses\n\u263a\nMentors\n$\nOrders\n\u2630\nUsers\n\u2605\nReviews\n\u2190 Back to site\n\nDemo mode: changes are saved in this browser only and do not appear on learner pages. Connect the API for real m"
+  },
+  {
+   "id": "D03",
+   "name": "dashboard revenue reflects the test purchase (299)",
+   "pass": true,
+   "detail": "ADMIN PORTAL\n\n\u25a6\nOverview\n\u25a4\nCourses\n\u263a\nMentors\n$\nOrders\n\u2630\nUsers\n\u2605\nReviews\n\u2190 Back to site\n\nDemo mode: changes are saved in this browser only and do not appear on learner pages. Connect the API for real management.\n\nOverview\n\nTotal revenue\n\nSAR 299\n\nRevenue, last 30 days\n\nSAR 299\n\nPaid orders\n\n2\n\nEnroll"
+  },
+  {
+   "id": "D04",
+   "name": "course list shows all courses",
+   "pass": true,
+   "detail": "13"
+  },
+  {
+   "id": "D05",
+   "name": "course list search filters rows",
+   "pass": true,
+   "detail": ""
+  },
+  {
+   "id": "D10",
+   "name": "create course saves and redirects to its edit page",
+   "pass": true,
+   "detail": "http://localhost:3100/en/admin/courses/c-qa-course-14354"
+  },
+  {
+   "id": "D11",
+   "name": "created course keeps title, price 123.45 and the live session",
+   "pass": true,
+   "detail": "123.45"
+  },
+  {
+   "id": "D12",
+   "name": "session time round-trips in Riyadh time",
+   "pass": true,
+   "detail": "2027-03-01T18:30"
+  },
+  {
+   "id": "D13",
+   "name": "slug is locked after creation",
+   "pass": true,
+   "detail": ""
+  },
+  {
+   "id": "D14",
+   "name": "course list now has +1",
+   "pass": true,
+   "detail": "14"
+  },
+  {
+   "id": "D15",
+   "name": "duplicate slug is refused with a message",
+   "pass": true,
+   "detail": "ADMIN PORTAL\n\n\u25a6\nOverview\n\u25a4\nCourses\n\u263a\nMentors\n$\nOrders\n\u2630\nUsers\n\u2605\nReviews\n\u2190 Back to site\n\nDemo mode: changes are saved in this browser only and do not a"
+  },
+  {
+   "id": "D16",
+   "name": "edit persists after reload",
+   "pass": true,
+   "detail": ""
+  },
+  {
+   "id": "D17",
+   "name": "syllabus editor adds module and lesson rows",
+   "pass": true,
+   "detail": ""
+  },
+  {
+   "id": "D18",
+   "name": "course can be hidden (badge changes)",
+   "pass": true,
+   "detail": ""
+  },
+  {
+   "id": "D20",
+   "name": "mentor created",
+   "pass": true,
+   "detail": "7"
+  },
+  {
+   "id": "D21",
+   "name": "users list includes test learners",
+   "pass": true,
+   "detail": ""
+  },
+  {
+   "id": "D22",
+   "name": "guardian registration is flagged",
+   "pass": true,
+   "detail": ""
+  },
+  {
+   "id": "D23",
+   "name": "admin can grant Mentor role",
+   "pass": true,
+   "detail": ""
+  },
+  {
+   "id": "D24",
+   "name": "admin cannot remove own admin role",
+   "pass": true,
+   "detail": "ADMIN PORTAL\n\n\u25a6\nOverview\n\u25a4\nCourses\n\u263a\nMentors\n$\nOrders\n\u2630\nUsers\n\u2605\nReviews\n\u2190 Back to site\n\nDemo mode: changes are saved in this browser only and do not appear on learner pages. Connect the API for real m"
+  },
+  {
+   "id": "D30",
+   "name": "reviews list shows seed + test review",
+   "pass": true,
+   "detail": "9"
+  },
+  {
+   "id": "D31",
+   "name": "mentor reply can be added",
+   "pass": true,
+   "detail": ""
+  },
+  {
+   "id": "D32",
+   "name": "review can be deleted",
+   "pass": true,
+   "detail": ""
+  },
+  {
+   "id": "D40",
+   "name": "orders list shows the purchase with VAT",
+   "pass": true,
+   "detail": "ADMIN PORTAL\n\n\u25a6\nOverview\n\u25a4\nCourses\n\u263a\nMentors\n$\nOrders\n\u2630\nUsers\n\u2605\nReviews\n\u2190 Back to site\n\nDemo mode: changes are saved in this browser only and do not appear on learner pages. Connect the API for real m"
+  },
+  {
+   "id": "D50",
+   "name": "user promoted to mentor without linked profile sees 'not linked'",
+   "pass": true,
+   "detail": "Your account is not linked to a mentor profile\n\nAsk an administrator to link your email to your mentor profile."
+  },
+  {
+   "id": "D51",
+   "name": "admin links a mentor profile to a login",
+   "pass": true,
+   "detail": "ADMIN PORTAL\n\n\u25a6\nOverview\n\u25a4\nCourses\n\u263a\nMentors\n$\nOrders\n\u2630\nUsers\n\u2605\nReviews\n\u2190 Back to site\n\nDemo mode: changes are saved in this browser only and do not a"
+  },
+  {
+   "id": "D52",
+   "name": "after linking, the same login opens the mentor portal",
+   "pass": true,
+   "detail": "MENTOR PORTAL\n\n\u25a6\nOverview\n\u25a4\nMy courses\n\u25cf\nMy live sessions\n\u2630\nLearners\n\u2605\nReviews\n\u263a\nMy profile\n\u2190 Back to site\n\nDemo mode: changes are saved in this brows"
+  },
+  {
+   "id": "E01",
+   "name": "mentor sees only own courses (3 seeded + the 1 admin created for them)",
+   "pass": true,
+   "detail": "4"
+  },
+  {
+   "id": "E02",
+   "name": "other mentors' courses are not listed",
+   "pass": true,
+   "detail": ""
+  },
+  {
+   "id": "E03",
+   "name": "direct URL to another mentor's course shows nothing",
+   "pass": true,
+   "detail": ""
+  },
+  {
+   "id": "E04",
+   "name": "restricted editor: price, slug, audience, flags are disabled",
+   "pass": true,
+   "detail": ""
+  },
+  {
+   "id": "E05",
+   "name": "restricted editor: cannot add or remove offerings",
+   "pass": true,
+   "detail": ""
+  },
+  {
+   "id": "E06",
+   "name": "mentor edit saved, price unchanged",
+   "pass": true,
+   "detail": ""
+  },
+  {
+   "id": "E07",
+   "name": "mentor can add a live session",
+   "pass": true,
+   "detail": "(4, 5)"
+  },
+  {
+   "id": "E08",
+   "name": "sessions page lists sessions with join buttons",
+   "pass": true,
+   "detail": ""
+  },
+  {
+   "id": "E09",
+   "name": "learners list shows the learner who bought the course (name only)",
+   "pass": true,
+   "detail": "MENTOR PORTAL\n\n\u25a6\nOverview\n\u25a4\nMy courses\n\u25cf\nMy live sessions\n\u2630\nLearners\n\u2605\nReviews\n\u263a\nMy profile\n\u2190 Back to site\n\nDemo mode: changes are saved in this browser only and do not appear on learner pages. Connec"
+  },
+  {
+   "id": "E10",
+   "name": "learners list exposes no email addresses",
+   "pass": true,
+   "detail": "[]"
+  },
+  {
+   "id": "E11",
+   "name": "reviews only for own courses",
+   "pass": true,
+   "detail": ""
+  },
+  {
+   "id": "E12",
+   "name": "mentor can reply to a review",
+   "pass": true,
+   "detail": ""
+  },
+  {
+   "id": "E13",
+   "name": "mentor has no delete-review control",
+   "pass": true,
+   "detail": ""
+  },
+  {
+   "id": "E14",
+   "name": "mentor can edit own profile",
+   "pass": true,
+   "detail": ""
+  },
+  {
+   "id": "E15",
+   "name": "mentor overview shows sales from the test purchase",
+   "pass": true,
+   "detail": "MENTOR PORTAL\n\n\u25a6\nOverview\n\u25a4\nMy courses\n\u25cf\nMy live sessions\n\u2630\nLearners\n\u2605\nReviews\n\u263a\nMy profile\n\u2190 Back to site\n\nDemo mode: changes are saved in this browser only and do not appear on learner pages. Connect the API for real management.\n\nOverview\n\nLearners\n\n1\n\nCourses\n\n4\n\nRating\n\n4.9\n\n(412)\n\nUpcoming sess"
+  },
+  {
+   "id": "E16",
+   "name": "mentor cannot open admin",
+   "pass": true,
+   "detail": ""
+  },
+  {
+   "id": "F01-ar",
+   "name": "mobile 390px no horizontal overflow /ar",
+   "pass": true,
+   "detail": "[False, ['DIV.pointer-events-none absolute -end-40 -to', 'DIV.relative ', 'DIV.absolute inset-[-12%] rounded-full']]"
+  },
+  {
+   "id": "F01-en",
+   "name": "mobile 390px no horizontal overflow /en",
+   "pass": true,
+   "detail": "[False, ['DIV.pointer-events-none absolute -end-40 -to', 'DIV.relative ', 'DIV.absolute inset-[-12%] rounded-full']]"
+  },
+  {
+   "id": "F01-ar-courses",
+   "name": "mobile 390px no horizontal overflow /ar/courses",
+   "pass": true,
+   "detail": "[False, []]"
+  },
+  {
+   "id": "F01-en-courses?audience=kids",
+   "name": "mobile 390px no horizontal overflow /en/courses?audience=kids",
+   "pass": true,
+   "detail": "[False, []]"
+  },
+  {
+   "id": "F01-ar-courses-career-launchpad",
+   "name": "mobile 390px no horizontal overflow /ar/courses/career-launchpad",
+   "pass": true,
+   "detail": "[False, []]"
+  },
+  {
+   "id": "F01-en-courses-little-project-heroes",
+   "name": "mobile 390px no horizontal overflow /en/courses/little-project-heroes",
+   "pass": true,
+   "detail": "[False, []]"
+  },
+  {
+   "id": "F01-ar-mentors",
+   "name": "mobile 390px no horizontal overflow /ar/mentors",
+   "pass": true,
+   "detail": "[False, []]"
+  },
+  {
+   "id": "F01-en-mentors-layla-al-harbi",
+   "name": "mobile 390px no horizontal overflow /en/mentors/layla-al-harbi",
+   "pass": true,
+   "detail": "[False, []]"
+  },
+  {
+   "id": "F01-ar-login",
+   "name": "mobile 390px no horizontal overflow /ar/login",
+   "pass": true,
+   "detail": "[False, []]"
+  },
+  {
+   "id": "F01-ar-register",
+   "name": "mobile 390px no horizontal overflow /ar/register",
+   "pass": true,
+   "detail": "[False, []]"
+  },
+  {
+   "id": "F01-en-cart",
+   "name": "mobile 390px no horizontal overflow /en/cart",
+   "pass": true,
+   "detail": "[False, []]"
+  },
+  {
+   "id": "F02-ar-admin",
+   "name": "mobile admin page not overflowing the viewport /ar/admin",
+   "pass": true,
+   "detail": ""
+  },
+  {
+   "id": "F02-ar-admin-courses",
+   "name": "mobile admin page not overflowing the viewport /ar/admin/courses",
+   "pass": true,
+   "detail": ""
+  },
+  {
+   "id": "F02-ar-admin-courses-c-career-launchpad",
+   "name": "mobile admin page not overflowing the viewport /ar/admin/courses/c-career-launchpad",
+   "pass": true,
+   "detail": ""
+  },
+  {
+   "id": "F02-ar-admin-users",
+   "name": "mobile admin page not overflowing the viewport /ar/admin/users",
+   "pass": true,
+   "detail": ""
+  },
+  {
+   "id": "F03-ar-mentor",
+   "name": "mobile mentor page not overflowing /ar/mentor",
+   "pass": true,
+   "detail": ""
+  },
+  {
+   "id": "F03-ar-mentor-sessions",
+   "name": "mobile mentor page not overflowing /ar/mentor/sessions",
+   "pass": true,
+   "detail": ""
+  },
+  {
+   "id": "F04",
+   "name": "mobile menu opens with nav links",
+   "pass": true,
+   "detail": ""
+  },
+  {
+   "id": "F05",
+   "name": "tablet 820px: no horizontal overflow on catalogue",
+   "pass": true,
+   "detail": ""
+  },
+  {
+   "id": "G01-ar",
+   "name": "a11y basics /ar (alt, one h1, title, names, labels)",
+   "pass": true,
+   "detail": "{'noalt': 0, 'h1': 1, 'title': True, 'lang': True, 'btn': 0, 'inp': 0}"
+  },
+  {
+   "id": "G01-en",
+   "name": "a11y basics /en (alt, one h1, title, names, labels)",
+   "pass": true,
+   "detail": "{'noalt': 0, 'h1': 1, 'title': True, 'lang': True, 'btn': 0, 'inp': 0}"
+  },
+  {
+   "id": "G01-ar-courses",
+   "name": "a11y basics /ar/courses (alt, one h1, title, names, labels)",
+   "pass": true,
+   "detail": "{'noalt': 0, 'h1': 1, 'title': True, 'lang': True, 'btn': 0, 'inp': 0}"
+  },
+  {
+   "id": "G01-en-courses-career-launchpad",
+   "name": "a11y basics /en/courses/career-launchpad (alt, one h1, title, names, labels)",
+   "pass": true,
+   "detail": "{'noalt': 0, 'h1': 1, 'title': True, 'lang': True, 'btn': 0, 'inp': 0}"
+  },
+  {
+   "id": "G01-en-mentors",
+   "name": "a11y basics /en/mentors (alt, one h1, title, names, labels)",
+   "pass": true,
+   "detail": "{'noalt': 0, 'h1': 1, 'title': True, 'lang': True, 'btn': 0, 'inp': 0}"
+  },
+  {
+   "id": "G01-en-mentors-layla-al-harbi",
+   "name": "a11y basics /en/mentors/layla-al-harbi (alt, one h1, title, names, labels)",
+   "pass": true,
+   "detail": "{'noalt': 0, 'h1': 1, 'title': True, 'lang': True, 'btn': 0, 'inp': 0}"
+  },
+  {
+   "id": "G01-en-login",
+   "name": "a11y basics /en/login (alt, one h1, title, names, labels)",
+   "pass": true,
+   "detail": "{'noalt': 0, 'h1': 1, 'title': True, 'lang': True, 'btn': 0, 'inp': 0}"
+  },
+  {
+   "id": "G01-en-register",
+   "name": "a11y basics /en/register (alt, one h1, title, names, labels)",
+   "pass": true,
+   "detail": "{'noalt': 0, 'h1': 1, 'title': True, 'lang': True, 'btn': 0, 'inp': 0}"
+  },
+  {
+   "id": "G01-en-cart",
+   "name": "a11y basics /en/cart (alt, one h1, title, names, labels)",
+   "pass": true,
+   "detail": "{'noalt': 0, 'h1': 1, 'title': True, 'lang': True, 'btn': 0, 'inp': 0}"
+  },
+  {
+   "id": "G02",
+   "name": "no broken internal links (75 checked)",
+   "pass": true,
+   "detail": "[]"
+  },
+  {
+   "id": "G03",
+   "name": "no server version leak in X-Powered-By",
+   "pass": true,
+   "detail": "None"
+  },
+  {
+   "id": "G04",
+   "name": "home loads in < 3s locally (informational: DCL/load ms, KB)",
+   "pass": true,
+   "detail": "{'dcl_load_ms': [171, 320], 'kb': 678}"
+  },
+  {
+   "id": "G05",
+   "name": "no JavaScript / console errors during the whole run",
+   "pass": true,
+   "detail": "[]"
+  },
+  {
+   "id": "H01",
+   "name": "hero shows founder photo with alt text",
+   "pass": true,
+   "detail": ""
+  },
+  {
+   "id": "H02",
+   "name": "hero shows slogan, founder quote and signature placeholder",
+   "pass": true,
+   "detail": ""
+  },
+  {
+   "id": "H03",
+   "name": "sample-wording notice is visible while content is a draft",
+   "pass": true,
+   "detail": ""
+  },
+  {
+   "id": "H04",
+   "name": "footer shows licence numbers flagged as sample data",
+   "pass": true,
+   "detail": ""
+  },
+  {
+   "id": "H05",
+   "name": "default surfaces are light/cream (body, header, footer luminance > 225)",
+   "pass": true,
+   "detail": "[248.1324, 248.91979999999995, 238.337]"
+  },
+  {
+   "id": "H10-en-terms",
+   "name": "legal page en/terms renders with sections and company details",
+   "pass": true,
+   "detail": ""
+  },
+  {
+   "id": "H10-en-privacy",
+   "name": "legal page en/privacy renders with sections and company details",
+   "pass": true,
+   "detail": ""
+  },
+  {
+   "id": "H10-en-refund",
+   "name": "legal page en/refund renders with sections and company details",
+   "pass": true,
+   "detail": ""
+  },
+  {
+   "id": "H10-ar-terms",
+   "name": "legal page ar/terms renders with sections and company details",
+   "pass": true,
+   "detail": ""
+  },
+  {
+   "id": "H10-ar-privacy",
+   "name": "legal page ar/privacy renders with sections and company details",
+   "pass": true,
+   "detail": ""
+  },
+  {
+   "id": "H10-ar-refund",
+   "name": "legal page ar/refund renders with sections and company details",
+   "pass": true,
+   "detail": ""
+  },
+  {
+   "id": "H11",
+   "name": "register form links to terms and privacy",
+   "pass": true,
+   "detail": ""
+  },
+  {
+   "id": "H12",
+   "name": "empty register shows an error under every required field",
+   "pass": true,
+   "detail": "['\u26a0 Enter your full name (at least 2 characters)', '\u26a0 Enter your email address', '\u26a0 Enter your password', '\u26a0 To continue, accept the terms and conditions and the privacy policy']"
+  },
+  {
+   "id": "H13",
+   "name": "a toast summarises the problem",
+   "pass": true,
+   "detail": ""
+  },
+  {
+   "id": "H14",
+   "name": "first invalid field gets focus",
+   "pass": true,
+   "detail": ""
+  },
+  {
+   "id": "H15",
+   "name": "email and mobile errors explain the expected format",
+   "pass": true,
+   "detail": ""
+  },
+  {
+   "id": "H16",
+   "name": "password checklist reflects rules live",
+   "pass": true,
+   "detail": " At least 8 characters\n\u2713 At least one letter\n\u25cb At least one number\n\nI agree to the Terms and conditions and the Privacy policy\n\n\u26a0 To continue, accept the terms and conditions and the privacy policy\n\nI would like news about courses and offers (optional)\nCreate account\n\nAlready have an account? Log in"
+  },
+  {
+   "id": "H17",
+   "name": "empty login shows email and password errors",
+   "pass": true,
+   "detail": ""
+  },
+  {
+   "id": "H18",
+   "name": "login shows a welcome toast",
+   "pass": true,
+   "detail": ""
+  },
+  {
+   "id": "H19",
+   "name": "logout shows a toast",
+   "pass": true,
+   "detail": ""
+  }
+ ]
+}

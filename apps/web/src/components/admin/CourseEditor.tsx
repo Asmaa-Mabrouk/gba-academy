@@ -6,7 +6,7 @@ import { mentorApi } from "@/lib/mentor-api";
 import type { Audience, Bilingual, Course, CourseModule, Lesson, LessonKind, Level, LiveSession, Mode, Offering } from "@/lib/types";
 import { Bi } from "./Bi";
 import { useAdmin } from "./AdminShell";
-import { errorText, useLoad } from "./hooks";
+import { errorText, useLoad, failMsg, okMsg } from "./hooks";
 import { Field, PageTitle, Panel } from "./ui";
 
 const E: Bilingual = { ar: "", en: "" };
@@ -55,10 +55,10 @@ export function CourseEditor({ id, restricted = false }: { id: string; restricte
     const outcomes = Array.from({ length: Math.max(ar.length, en.length) }, (_, i) => ({ ar: ar[i] ?? en[i] ?? "", en: en[i] ?? ar[i] ?? "" }));
     try {
       const saved = restricted ? await mentorApi.saveCourse(token, { ...c, outcomes }) : await adminApi.saveCourse(token, { ...c, outcomes }, isNew);
-      setMsg({ ok: true, text: a.common.saved });
+      okMsg(setMsg, a.common.saved);
       if (isNew) router.replace(`${base}/${saved.id}`);
       else setC(saved);
-    } catch (e) { setMsg({ ok: false, text: errorText(a, e) }); }
+    } catch (e) { failMsg(setMsg, errorText(a, e)); }
     setBusy(false);
   };
 

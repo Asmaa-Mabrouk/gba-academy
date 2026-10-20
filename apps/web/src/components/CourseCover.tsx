@@ -3,7 +3,7 @@ import type { Audience } from "@/lib/types";
 const PAL: Record<Audience, [string, string, string]> = {
   kids: ["#7fc9bf", "#78afd4", "#edca6d"],
   youth: ["#a759d1", "#78afd4", "#edca6d"],
-  experts: ["#0b1327", "#1a2547", "#c49c3e"],
+  experts: ["#f3e6bf", "#d9bd77", "#8a5a12"],
 };
 
 /** Generative cover so every course has artwork before real images exist. */

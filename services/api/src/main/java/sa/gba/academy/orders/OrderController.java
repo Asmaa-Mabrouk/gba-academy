@@ -41,12 +41,17 @@ public class OrderController {
     @Transactional
     public ResponseEntity<String> create(@Valid @RequestBody OrderRequest req, HttpServletRequest http) {
         UUID userId = AuthInterceptor.require(http);
-        String method = switch (String.valueOf(req.paymentMethod())) {
+        String requested = switch (String.valueOf(req.paymentMethod())) {
             case "mada", "applepay", "card" -> req.paymentMethod();
             default -> throw new ApiException(HttpStatus.BAD_REQUEST, "invalid_payment_method");
         };
+        // The same offering twice in one request is bought once.
+        List<Line> lines = req.lines().stream().filter(l -> l.offeringId() != null).distinct().toList();
         long total = 0;
-        for (Line l : req.lines()) {
+        for (Line l : lines) {
+            boolean owned = db.sql("SELECT count(*) FROM enrollments WHERE user_id = :u AND offering_id = :o")
+                    .param("u", userId).param("o", l.offeringId()).query(Integer.class).single() > 0;
+            if (owned) throw new ApiException(HttpStatus.CONFLICT, "already_enrolled");
             List<Map<String, Object>> o = db.sql("SELECT price_halalas FROM offerings WHERE id = :id").param("id", l.offeringId()).query().listOfRows();
             if (o.isEmpty()) throw new ApiException(HttpStatus.BAD_REQUEST, "unknown_offering");
             long full = db.sql("SELECT count(*) FROM live_sessions WHERE offering_id = :id AND seats_taken >= seats")
@@ -58,11 +63,14 @@ public class OrderController {
         long vat = total - net;
         String number = "GBA-%d-%05d".formatted(java.time.Year.now().getValue(), db.sql("SELECT nextval('order_seq')").query(Long.class).single());
 
-        PaymentGateway.Charge charge = payments.charge(number, total, method);
+        // Free courses skip the payment gateway and the tax invoice.
+        boolean free = total == 0;
+        String method = free ? "free" : requested;
+        PaymentGateway.Charge charge = free ? new PaymentGateway.Charge(true, null, null) : payments.charge(number, total, method);
         if (!charge.success()) throw new ApiException(HttpStatus.PAYMENT_REQUIRED, "payment_failed");
 
         Map<String, Object> user = db.sql("SELECT full_name, email FROM users WHERE id = :id").param("id", userId).query().singleRow();
-        String invoiceNo = invoices.issue(new EInvoiceService.InvoiceRequest(number, (String) user.get("full_name"), (String) user.get("email"), net, vat, total));
+        String invoiceNo = free ? null : invoices.issue(new EInvoiceService.InvoiceRequest(number, (String) user.get("full_name"), (String) user.get("email"), net, vat, total));
 
         UUID orderId = db.sql("""
                 INSERT INTO orders(number, user_id, status, subtotal_halalas, vat_halalas, total_halalas, payment_method, gateway_ref, invoice_number)
@@ -70,7 +78,7 @@ public class OrderController {
                 .param("n", number).param("u", userId).param("s", net).param("v", vat).param("t", total)
                 .param("m", method).param("g", charge.reference()).param("i", invoiceNo).query(UUID.class).single();
 
-        for (Line l : req.lines()) {
+        for (Line l : lines) {
             db.sql("INSERT INTO order_lines(order_id, offering_id, price_halalas) SELECT :o, id, price_halalas FROM offerings WHERE id = :id")
                     .param("o", orderId).param("id", l.offeringId()).update();
             int created = db.sql("""
@@ -83,7 +91,7 @@ public class OrderController {
                 db.sql("UPDATE courses SET learners = learners + 1 WHERE id = (SELECT course_id FROM offerings WHERE id = :id)").param("id", l.offeringId()).update();
             }
         }
-        messaging.send((String) user.get("email"), "order_receipt", Map.of("order", number, "invoice", invoiceNo));
+        messaging.send((String) user.get("email"), "order_receipt", Map.of("order", number, "invoice", invoiceNo == null ? "" : invoiceNo));
         return Json.of(orderJson(orderId));
     }
 

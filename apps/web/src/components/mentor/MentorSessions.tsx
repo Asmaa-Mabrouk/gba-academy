@@ -4,14 +4,14 @@ import { useState } from "react";
 import { dateTime, num, tr } from "@/lib/i18n";
 import { mentorApi } from "@/lib/mentor-api";
 import { useAdmin } from "../admin/AdminShell";
-import { errorText, useLoad } from "../admin/hooks";
+import { errorText, useLoad, failErr } from "../admin/hooks";
 import { PageTitle } from "../admin/ui";
 
 export function MentorSessions() {
   const { locale, a, token } = useAdmin();
   const { data } = useLoad(() => mentorApi.sessions(token), [token]);
   const [err, setErr] = useState("");
-  const join = async (id: string) => { try { window.open(await mentorApi.joinUrl(token, id), "_blank", "noopener"); } catch (e) { setErr(errorText(a, e)); } };
+  const join = async (id: string) => { try { window.open(await mentorApi.joinUrl(token, id), "_blank", "noopener"); } catch (e) { failErr(setErr, errorText(a, e)); } };
   const s = a.mp.sessions;
   return (
     <>

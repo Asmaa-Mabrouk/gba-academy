@@ -36,8 +36,8 @@ export function AdminShell({ locale, children }: { locale: Locale; children: Rea
 
   return (
     <AdminCtx.Provider value={{ locale, a, token }}>
-      <div className="container-x grid gap-6 py-8 lg:grid-cols-[230px_1fr]">
-        <aside className="lg:sticky lg:top-24 lg:self-start">
+      <div className="container-x grid grid-cols-1 gap-6 py-8 lg:grid-cols-[230px_1fr]">
+        <aside className="min-w-0 lg:sticky lg:top-24 lg:self-start">
           <p className="mb-3 px-2 text-xs font-bold uppercase tracking-wider text-gold-deep">{a.title}</p>
           <nav className="flex gap-1 overflow-x-auto lg:flex-col" aria-label={a.title}>
             {items.map(([p, label, icon]) => (

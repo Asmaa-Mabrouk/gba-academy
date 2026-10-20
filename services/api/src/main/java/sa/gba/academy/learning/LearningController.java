@@ -24,7 +24,7 @@ public class LearningController {
     private static final String ENROLLMENT_JSON = """
             SELECT json_build_object('id',e.id,'courseSlug',c.slug,'offeringId',e.offering_id,'mode',o.mode,
               'enrolledAt',e.enrolled_at,'expiresAt',e.expires_at,'completedLessonIds',e.completed_lesson_ids,
-              'progressPct',e.progress_pct,'certificateCode',e.certificate_code,
+              'progressPct',e.progress_pct,'certificateCode',e.certificate_code,'completedAt',e.completed_at,
               'nextSession',(SELECT json_build_object('id',s.id,'startsAt',s.starts_at,'durationMin',s.duration_min,
                     'seats',s.seats,'seatsLeft',s.seats - s.seats_taken,'title',s.title)
                   FROM live_sessions s WHERE s.offering_id = e.offering_id AND s.starts_at > now()
@@ -60,6 +60,9 @@ public class LearningController {
                 UPDATE enrollments e SET
                   progress_pct = LEAST(100, round(100.0 * cardinality(e.completed_lesson_ids) /
                       GREATEST(1, (SELECT count(*) FROM courses c2, json_array_elements(c2.modules::json) m, json_array_elements(m -> 'lessons') l WHERE c2.id = c.id)))),
+                  completed_at = COALESCE(e.completed_at, CASE WHEN cardinality(e.completed_lesson_ids) >=
+                      (SELECT count(*) FROM courses c4, json_array_elements(c4.modules::json) m4, json_array_elements(m4 -> 'lessons') l4 WHERE c4.id = c.id)
+                      THEN now() END),
                   certificate_code = COALESCE(e.certificate_code, CASE WHEN cardinality(e.completed_lesson_ids) >=
                       (SELECT count(*) FROM courses c3, json_array_elements(c3.modules::json) m3, json_array_elements(m3 -> 'lessons') l3 WHERE c3.id = c.id)
                       THEN 'GBA-' || upper(substr(md5(random()::text), 1, 6)) END)

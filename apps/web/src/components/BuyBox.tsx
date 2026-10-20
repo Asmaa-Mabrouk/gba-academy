@@ -4,15 +4,17 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { dateTime, money, num, tr, type Dict } from "@/lib/i18n";
 import { useCart } from "@/lib/store";
+import { useToast } from "@/lib/toast";
 import type { Course, Locale } from "@/lib/types";
 
 export function BuyBox({ course, locale, t }: { course: Course; locale: Locale; t: Dict }) {
   const [sel, setSel] = useState(course.offerings[0].id);
   const cart = useCart();
   const router = useRouter();
+  const toast = useToast();
   const o = course.offerings.find((x) => x.id === sel)!;
   const inCart = cart.has(o.id);
-  const add = () => cart.add({ offeringId: o.id, courseSlug: course.slug, mode: o.mode, priceHalalas: o.priceHalalas });
+  const add = () => { cart.add({ offeringId: o.id, courseSlug: course.slug, mode: o.mode, priceHalalas: o.priceHalalas }); toast.success(t.toast.added); };
   const hint = { recorded: t.modes.recordedHint, live: t.modes.liveHint, blended: t.modes.blendedHint };
   return (
     <div className="card overflow-hidden shadow-xl">
@@ -23,7 +25,7 @@ export function BuyBox({ course, locale, t }: { course: Course; locale: Locale; 
             <button key={x.id} role="radio" aria-checked={x.id === sel} onClick={() => setSel(x.id)}
               className={`flex w-full items-center justify-between rounded-2xl border-2 p-3.5 text-start transition ${x.id === sel ? "border-gold bg-sand" : "border-navy/10 hover:border-navy/30"}`}>
               <span><span className="block font-bold text-navy">{t.modes[x.mode]}</span><span className="block text-xs text-mute">{hint[x.mode]}</span></span>
-              <span className="font-extrabold text-navy">{money(x.priceHalalas, locale)}</span>
+              <span className="whitespace-nowrap font-extrabold text-navy">{money(x.priceHalalas, locale)}</span>
             </button>
           ))}
         </div>

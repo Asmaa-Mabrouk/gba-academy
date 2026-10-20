@@ -4,7 +4,7 @@ import { adminApi } from "@/lib/admin-api";
 import { Stars } from "../Stars";
 import { dateOnly, tr } from "@/lib/i18n";
 import { useAdmin } from "./AdminShell";
-import { errorText, useLoad } from "./hooks";
+import { errorText, useLoad, failErr, okToast } from "./hooks";
 import { PageTitle } from "./ui";
 
 export function AdminReviews() {
@@ -13,7 +13,7 @@ export function AdminReviews() {
   const { data, reload } = useLoad(() => adminApi.reviews(token), [token]);
   const [reply, setReply] = useState<Record<string, string>>({});
   const [err, setErr] = useState("");
-  const run = async (fn: () => Promise<void>) => { try { await fn(); setErr(""); reload(); } catch (e) { setErr(errorText(a, e)); } };
+  const run = async (fn: () => Promise<void>) => { try { await fn(); setErr(""); okToast(a.common.saved); reload(); } catch (e) { failErr(setErr, errorText(a, e)); } };
   return (
     <>
       <PageTitle>{t.title}</PageTitle>
