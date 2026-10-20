@@ -1,3 +1,4 @@
+import { phoneOk } from "./countries";
 import type { Dict } from "./i18n";
 
 export const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
@@ -20,13 +21,13 @@ export function expiryOk(v: string, now = new Date()): boolean {
 
 export type Errors<K extends string> = Partial<Record<K, string>>;
 
-export function validateAuth(mode: "login" | "register", f: { fullName: string; email: string; mobile: string; password: string; terms: boolean }, t: Dict): Errors<"fullName" | "email" | "mobile" | "password" | "terms"> {
+export function validateAuth(mode: "login" | "register", f: { fullName: string; email: string; mobile: string; country: string; password: string; terms: boolean }, t: Dict): Errors<"fullName" | "email" | "mobile" | "password" | "terms"> {
   const e: Errors<"fullName" | "email" | "mobile" | "password" | "terms"> = {};
   const email = f.email.trim();
   if (!email) e.email = t.v.emailRequired; else if (!EMAIL_RE.test(email)) e.email = t.v.emailInvalid;
   if (mode === "login") { if (!f.password) e.password = t.v.passwordRequired; return e; }
   if (f.fullName.trim().length < 2) e.fullName = t.v.nameRequired;
-  if (f.mobile.trim() && !MOBILE_RE.test(f.mobile.replace(/\s/g, ""))) e.mobile = t.v.mobileInvalid;
+  if (f.mobile.trim() && !phoneOk(f.country, f.mobile)) e.mobile = t.v.mobileInvalid;
   const r = pwRules(f.password);
   if (!f.password) e.password = t.v.passwordRequired; else if (!(r.len && r.letter && r.digit)) e.password = t.v.passwordWeak;
   if (!f.terms) e.terms = t.v.termsRequired;

@@ -11,13 +11,15 @@ import { TERMS_VERSION } from "@/lib/placeholders";
 import { useToast } from "@/lib/toast";
 import { pwRules, validateAuth, type Errors } from "@/lib/validate";
 import type { Locale } from "@/lib/types";
+import { DEFAULT_COUNTRY, fullPhone } from "@/lib/countries";
 import { GpmfSpiral } from "./GpmfSpiral";
+import { PhoneInput } from "./PhoneInput";
 
 export function AuthForm({ mode, locale, t }: { mode: "login" | "register"; locale: Locale; t: Dict }) {
   const { login, register } = useAuth();
   const router = useRouter();
   const next = useSearchParams().get("next");
-  const [f, setF] = useState({ fullName: "", email: "", mobile: "", password: "", forChild: false, terms: false, marketing: false });
+  const [f, setF] = useState({ fullName: "", email: "", mobile: "", country: DEFAULT_COUNTRY, password: "", forChild: false, terms: false, marketing: false });
   const [show, setShow] = useState(false);
   const [err, setErr] = useState("");
   const [fe, setFe] = useState<Errors<"fullName" | "email" | "mobile" | "password" | "terms">>({});
@@ -34,14 +36,14 @@ export function AuthForm({ mode, locale, t }: { mode: "login" | "register"; loca
     setErr("");
     const errs = check();
     if (Object.keys(errs).length) {
-      toast.error(t.toast.fixFields);
+      toast.warning(t.toast.fixFields);
       setTimeout(() => formRef.current?.querySelector<HTMLElement>("[aria-invalid=true]")?.focus(), 0);
       return;
     }
     setBusy(true);
     try {
       const user = isReg
-        ? await register({ fullName: f.fullName.trim(), email: f.email.trim(), mobile: f.mobile.replace(/\s/g, ""), password: f.password, locale, registeringFor: f.forChild ? "child" : "self", marketingConsent: f.marketing, acceptedTerms: true, termsVersion: TERMS_VERSION })
+        ? await register({ fullName: f.fullName.trim(), email: f.email.trim(), mobile: f.mobile.trim() ? fullPhone(f.country, f.mobile) : "", password: f.password, locale, registeringFor: f.forChild ? "child" : "self", marketingConsent: f.marketing, acceptedTerms: true, termsVersion: TERMS_VERSION })
         : await login(f.email.trim(), f.password);
       toast.success((isReg ? t.toast.registered : t.toast.welcome).replace("{name}", user.fullName.split(" ")[0]));
       router.push(next && next.startsWith("/") && !next.startsWith("//") ? next : landingFor(user, locale));
@@ -87,7 +89,7 @@ export function AuthForm({ mode, locale, t }: { mode: "login" | "register"; loca
           {isReg && f.forChild && <p className="rounded-xl bg-teal/20 p-3 text-xs">{t.auth.childHint}</p>}
           {isReg && <Field label={t.auth.fullName} error={fe.fullName} id="fullName"><input id="fullName" className={`input ${fe.fullName ? "input-error" : ""}`} aria-invalid={!!fe.fullName} aria-describedby={fe.fullName ? "fullName-err" : undefined} autoComplete="name" value={f.fullName} onChange={(e) => set("fullName", e.target.value)} onBlur={blur("fullName")} /></Field>}
           <Field label={t.auth.email} error={fe.email} id="email"><input id="email" className={`input ${fe.email ? "input-error" : ""}`} type="email" aria-invalid={!!fe.email} aria-describedby={fe.email ? "email-err" : undefined} autoComplete="email" dir="ltr" value={f.email} onChange={(e) => set("email", e.target.value)} onBlur={blur("email")} /></Field>
-          {isReg && <Field label={t.auth.mobile} error={fe.mobile} id="mobile"><input id="mobile" className={`input ${fe.mobile ? "input-error" : ""}`} type="tel" aria-invalid={!!fe.mobile} aria-describedby={fe.mobile ? "mobile-err" : undefined} autoComplete="tel" dir="ltr" inputMode="numeric" placeholder="05XXXXXXXX" value={f.mobile} onChange={(e) => set("mobile", e.target.value)} onBlur={blur("mobile")} /></Field>}
+          {isReg && <Field label={t.auth.mobile} error={fe.mobile} id="mobile"><PhoneInput id="mobile" country={f.country} value={f.mobile} onCountry={(c) => { setF((p) => ({ ...p, country: c })); setFe((p) => ({ ...p, mobile: undefined })); }} onValue={(v) => set("mobile", v)} onBlur={blur("mobile")} invalid={!!fe.mobile} describedBy={fe.mobile ? "mobile-err" : undefined} locale={locale} t={t} /></Field>}
           <Field label={t.auth.password} error={fe.password} id="password">
             <div className="relative">
               <input id="password" className={`input !pe-16 ${fe.password ? "input-error" : ""}`} type={show ? "text" : "password"} aria-invalid={!!fe.password} aria-describedby={fe.password ? "password-err" : undefined} dir="ltr" autoComplete={isReg ? "new-password" : "current-password"} value={f.password} onChange={(e) => set("password", e.target.value)} onBlur={blur("password")} />

@@ -37,7 +37,7 @@ export function CheckoutView({ locale, t }: { locale: Locale; t: Dict }) {
     }
     if (!agree) e.agree = t.v.payTerms;
     setFe(e);
-    if (Object.keys(e).length) { toast.error(t.toast.fixFields); return; }
+    if (Object.keys(e).length) { toast.warning(t.toast.fixFields); return; }
     setBusy(true);
     try { const o = await userApi.checkout(token, lines, method); clear(); setOrder(o); toast.success(t.toast.paid); }
     catch (x) {

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import type { ReactNode } from "react";
 import "../globals.css";
+import "flag-icons/css/flag-icons.min.css";
 import { Footer } from "@/components/Footer";
 import { Header } from "@/components/Header";
 import { dirOf, getDict, isLocale, LOCALES } from "@/lib/i18n";

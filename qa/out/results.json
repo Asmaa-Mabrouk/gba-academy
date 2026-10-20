@@ -1,7 +1,7 @@
 {
  "base": "http://localhost:3100",
- "passed": 207,
- "total": 207,
+ "passed": 221,
+ "total": 221,
  "results": [
   {
    "id": "A01",
@@ -715,7 +715,7 @@
    "id": "D10",
    "name": "create course saves and redirects to its edit page",
    "pass": true,
-   "detail": "http://localhost:3100/en/admin/courses/c-qa-course-14354"
+   "detail": "http://localhost:3100/en/admin/courses/c-qa-course-23119"
   },
   {
    "id": "D11",
@@ -1117,7 +1117,7 @@
    "id": "G04",
    "name": "home loads in < 3s locally (informational: DCL/load ms, KB)",
    "pass": true,
-   "detail": "{'dcl_load_ms': [171, 320], 'kb': 678}"
+   "detail": "{'dcl_load_ms': [75, 486], 'kb': 677}"
   },
   {
    "id": "G05",
@@ -1228,6 +1228,54 @@
    "detail": " At least 8 characters\n\u2713 At least one letter\n\u25cb At least one number\n\nI agree to the Terms and conditions and the Privacy policy\n\n\u26a0 To continue, accept the terms and conditions and the privacy policy\n\nI would like news about courses and offers (optional)\nCreate account\n\nAlready have an account? Log in"
   },
   {
+   "id": "H15b",
+   "name": "phone field shows a flag and +966 by default",
+   "pass": true,
+   "detail": ""
+  },
+  {
+   "id": "H15c",
+   "name": "country list is searchable by name and shows flags",
+   "pass": true,
+   "detail": ""
+  },
+  {
+   "id": "H15d",
+   "name": "choosing a country updates flag and code",
+   "pass": true,
+   "detail": ""
+  },
+  {
+   "id": "H15e",
+   "name": "UAE number must start with 5 (clear message)",
+   "pass": true,
+   "detail": ""
+  },
+  {
+   "id": "H15f",
+   "name": "valid UAE number clears the error",
+   "pass": true,
+   "detail": ""
+  },
+  {
+   "id": "H15g",
+   "name": "Arabic toast sits on the right side",
+   "pass": true,
+   "detail": "{'x': 928.0740966796875, 'y': 84, 'width': 416, 'height': 56}"
+  },
+  {
+   "id": "H15h",
+   "name": "English toast sits on the left side",
+   "pass": true,
+   "detail": "{'x': 15.926076889038086, 'y': 84, 'width': 416.00000953674316, 'height': 56}"
+  },
+  {
+   "id": "H15i",
+   "name": "warning toast is translucent amber",
+   "pass": true,
+   "detail": "oklab(0.961999 -0.00578317 0.0587357 / 0.8)"
+  },
+  {
    "id": "H17",
    "name": "empty login shows email and password errors",
    "pass": true,
@@ -1241,7 +1289,43 @@
   },
   {
    "id": "H19",
-   "name": "logout shows a toast",
+   "name": "logout opens a 'See you soon' dialog with the first name",
+   "pass": true,
+   "detail": "\u2715\n\ud83d\udc4b\nSee you soon, \u0645\u062a\u0639\u0644\u0645!\n\nYou have been logged out safely. Have a great day, and"
+  },
+  {
+   "id": "H19b",
+   "name": "dialog has log-in-again and home actions",
+   "pass": true,
+   "detail": ""
+  },
+  {
+   "id": "H19c",
+   "name": "Esc dismisses the dialog",
+   "pass": true,
+   "detail": ""
+  },
+  {
+   "id": "H19d",
+   "name": "user is logged out",
+   "pass": true,
+   "detail": ""
+  },
+  {
+   "id": "H19e",
+   "name": "language switch shows a flag (SA for Arabic target, GB for English target)",
+   "pass": true,
+   "detail": ""
+  },
+  {
+   "id": "H19f",
+   "name": "on Arabic pages the switch shows the UK flag and English",
+   "pass": true,
+   "detail": ""
+  },
+  {
+   "id": "H19g",
+   "name": "close button dismisses the dialog",
    "pass": true,
    "detail": ""
   }

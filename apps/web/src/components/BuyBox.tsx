@@ -14,7 +14,11 @@ export function BuyBox({ course, locale, t }: { course: Course; locale: Locale; 
   const toast = useToast();
   const o = course.offerings.find((x) => x.id === sel)!;
   const inCart = cart.has(o.id);
-  const add = () => { cart.add({ offeringId: o.id, courseSlug: course.slug, mode: o.mode, priceHalalas: o.priceHalalas }); toast.success(t.toast.added); };
+  const add = () => {
+    const prev = cart.lines.find((l) => l.courseSlug === course.slug && l.offeringId !== o.id);
+    cart.add({ offeringId: o.id, courseSlug: course.slug, mode: o.mode, priceHalalas: o.priceHalalas });
+    if (prev) toast.warning(t.toast.replaced); else toast.success(t.toast.added);
+  };
   const hint = { recorded: t.modes.recordedHint, live: t.modes.liveHint, blended: t.modes.blendedHint };
   return (
     <div className="card overflow-hidden shadow-xl">

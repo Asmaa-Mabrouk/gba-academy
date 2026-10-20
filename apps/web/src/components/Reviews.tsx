@@ -20,13 +20,13 @@ export function Reviews({ slug, base, rating, count, locale, t }: { slug: string
     if (!token || !user) return;
     const c = text.trim();
     const problem = !c ? t.v.reviewEmpty : c.length < 10 ? t.v.reviewShort : "";
-    if (problem) { setMsg(problem); toast.error(problem); return; }
+    if (problem) { setMsg(problem); toast.warning(problem); return; }
     try {
       const r = await userApi.addReview(token, slug, stars, c, user.fullName);
       setExtra((e) => [r, ...e]); setText(""); setMsg(""); toast.success(t.toast.reviewPosted);
     } catch (x) {
       const m = x instanceof ApiError && x.code === "not_enrolled" ? t.v.reviewNeedEnroll : x instanceof TypeError ? t.toast.network : t.common.error;
-      setMsg(m); toast.error(m);
+      setMsg(m); (x instanceof ApiError && x.code === "not_enrolled" ? toast.warning : toast.error)(m);
     }
   };
   return (
