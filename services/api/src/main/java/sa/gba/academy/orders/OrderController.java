@@ -1,0 +1,101 @@
+package sa.gba.academy.orders;
+
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotEmpty;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.jdbc.core.simple.JdbcClient;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.bind.annotation.*;
+import sa.gba.academy.auth.AuthInterceptor;
+import sa.gba.academy.common.ApiException;
+import sa.gba.academy.common.Json;
+import sa.gba.academy.integrations.EInvoiceService;
+import sa.gba.academy.integrations.MessagingService;
+import sa.gba.academy.integrations.PaymentGateway;
+
+@RestController
+@RequestMapping("/api/v1")
+public class OrderController {
+    public record Line(String offeringId) {}
+    public record OrderRequest(@NotEmpty List<Line> lines, String paymentMethod) {}
+
+    private final JdbcClient db;
+    private final PaymentGateway payments;
+    private final EInvoiceService invoices;
+    private final MessagingService messaging;
+
+    public OrderController(JdbcClient db, PaymentGateway payments, EInvoiceService invoices, MessagingService messaging) {
+        this.db = db;
+        this.payments = payments;
+        this.invoices = invoices;
+        this.messaging = messaging;
+    }
+
+    /** Prices come from the database, never from the browser. */
+    @PostMapping("/orders")
+    @Transactional
+    public ResponseEntity<String> create(@Valid @RequestBody OrderRequest req, HttpServletRequest http) {
+        UUID userId = AuthInterceptor.require(http);
+        String method = switch (String.valueOf(req.paymentMethod())) {
+            case "mada", "applepay", "card" -> req.paymentMethod();
+            default -> throw new ApiException(HttpStatus.BAD_REQUEST, "invalid_payment_method");
+        };
+        long total = 0;
+        for (Line l : req.lines()) {
+            List<Map<String, Object>> o = db.sql("SELECT price_halalas FROM offerings WHERE id = :id").param("id", l.offeringId()).query().listOfRows();
+            if (o.isEmpty()) throw new ApiException(HttpStatus.BAD_REQUEST, "unknown_offering");
+            long full = db.sql("SELECT count(*) FROM live_sessions WHERE offering_id = :id AND seats_taken >= seats")
+                    .param("id", l.offeringId()).query(Long.class).single();
+            if (full > 0) throw new ApiException(HttpStatus.CONFLICT, "sold_out");
+            total += ((Number) o.get(0).get("price_halalas")).longValue();
+        }
+        long net = Pricing.net(total);
+        long vat = total - net;
+        String number = "GBA-%d-%05d".formatted(java.time.Year.now().getValue(), db.sql("SELECT nextval('order_seq')").query(Long.class).single());
+
+        PaymentGateway.Charge charge = payments.charge(number, total, method);
+        if (!charge.success()) throw new ApiException(HttpStatus.PAYMENT_REQUIRED, "payment_failed");
+
+        Map<String, Object> user = db.sql("SELECT full_name, email FROM users WHERE id = :id").param("id", userId).query().singleRow();
+        String invoiceNo = invoices.issue(new EInvoiceService.InvoiceRequest(number, (String) user.get("full_name"), (String) user.get("email"), net, vat, total));
+
+        UUID orderId = db.sql("""
+                INSERT INTO orders(number, user_id, status, subtotal_halalas, vat_halalas, total_halalas, payment_method, gateway_ref, invoice_number)
+                VALUES (:n, :u, 'paid', :s, :v, :t, :m, :g, :i) RETURNING id""")
+                .param("n", number).param("u", userId).param("s", net).param("v", vat).param("t", total)
+                .param("m", method).param("g", charge.reference()).param("i", invoiceNo).query(UUID.class).single();
+
+        for (Line l : req.lines()) {
+            db.sql("INSERT INTO order_lines(order_id, offering_id, price_halalas) SELECT :o, id, price_halalas FROM offerings WHERE id = :id")
+                    .param("o", orderId).param("id", l.offeringId()).update();
+            int created = db.sql("""
+                    INSERT INTO enrollments(user_id, offering_id, order_id, expires_at)
+                    SELECT :u, o.id, :o, CASE WHEN o.access_days IS NULL THEN NULL ELSE now() + make_interval(days => o.access_days) END
+                    FROM offerings o WHERE o.id = :id ON CONFLICT (user_id, offering_id) DO NOTHING""")
+                    .param("u", userId).param("o", orderId).param("id", l.offeringId()).update();
+            if (created > 0) {
+                db.sql("UPDATE live_sessions SET seats_taken = seats_taken + 1 WHERE offering_id = :id").param("id", l.offeringId()).update();
+                db.sql("UPDATE courses SET learners = learners + 1 WHERE id = (SELECT course_id FROM offerings WHERE id = :id)").param("id", l.offeringId()).update();
+            }
+        }
+        messaging.send((String) user.get("email"), "order_receipt", Map.of("order", number, "invoice", invoiceNo));
+        return Json.of(orderJson(orderId));
+    }
+
+    private String orderJson(UUID id) {
+        return db.sql("""
+                SELECT json_build_object('id',o.id,'number',o.number,'status',o.status,'subtotalHalalas',o.subtotal_halalas,
+                  'vatHalalas',o.vat_halalas,'totalHalalas',o.total_halalas,'paymentMethod',o.payment_method,
+                  'createdAt',o.created_at,'invoiceNumber',o.invoice_number,
+                  'lines',(SELECT coalesce(json_agg(json_build_object('offeringId',l.offering_id,'courseSlug',c.slug,
+                      'mode',f.mode,'priceHalalas',l.price_halalas)),'[]'::json)
+                      FROM order_lines l JOIN offerings f ON f.id = l.offering_id JOIN courses c ON c.id = f.course_id
+                      WHERE l.order_id = o.id))::text
+                FROM orders o WHERE o.id = :id""").param("id", id).query(String.class).single();
+    }
+}

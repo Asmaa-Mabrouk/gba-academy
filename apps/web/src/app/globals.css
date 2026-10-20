@@ -1,0 +1,68 @@
+@import "tailwindcss";
+@import "@fontsource/tajawal/300.css";
+@import "@fontsource/tajawal/400.css";
+@import "@fontsource/tajawal/500.css";
+@import "@fontsource/tajawal/700.css";
+@import "@fontsource/tajawal/800.css";
+@import "@fontsource/roboto/300.css";
+@import "@fontsource/roboto/400.css";
+@import "@fontsource/roboto/500.css";
+@import "@fontsource/roboto/700.css";
+@import "@fontsource/roboto/900.css";
+
+/* Brand tokens: GPMF Visual Identity 2026. Change colours here only. */
+@theme {
+  --color-navy: #0b1327;
+  --color-navy-2: #111b36;
+  --color-navy-3: #1a2547;
+  --color-gold: #c49c3e;
+  --color-gold-light: #edca6d;
+  --color-gold-deep: #6d3c07;
+  --color-sand: #f7f3ea;
+  --color-ink: #252525;
+  --color-mute: #84888b;
+  --color-teal: #7fc9bf;
+  --color-sky: #78afd4;
+  --color-violet: #a759d1;
+  --font-sans: "Tajawal", "Roboto", system-ui, sans-serif;
+  --font-latin: "Roboto", system-ui, sans-serif;
+  --animate-spin-slow: spin 40s linear infinite;
+  --animate-float: float 7s ease-in-out infinite;
+}
+
+html { scroll-behavior: smooth; }
+html[lang="en"] body { font-family: "Roboto", "Tajawal", system-ui, sans-serif; }
+body { font-family: "Tajawal", "Roboto", system-ui, sans-serif; background: #fff; color: var(--color-ink); -webkit-font-smoothing: antialiased; }
+:focus-visible { outline: 3px solid var(--color-gold); outline-offset: 2px; border-radius: 6px; }
+
+.gold-text { background: linear-gradient(120deg, #edca6d, #c49c3e 50%, #d0ad6a); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.gold-bg { background: linear-gradient(135deg, #edca6d 0%, #c49c3e 55%, #a77a2a 100%); }
+.container-x { width: 100%; max-width: 1200px; margin-inline: auto; padding-inline: 1.25rem; }
+.card { background: #fff; border: 1px solid rgb(11 19 39 / 0.08); border-radius: 1.25rem; box-shadow: 0 1px 2px rgb(11 19 39 / 0.04); transition: transform .25s, box-shadow .25s; }
+.card-hover:hover { transform: translateY(-4px); box-shadow: 0 18px 40px -18px rgb(11 19 39 / 0.35); }
+.btn { white-space: nowrap; display: inline-flex; align-items: center; justify-content: center; gap: .5rem; font-weight: 700; border-radius: 999px; padding: .75rem 1.5rem; transition: transform .15s, box-shadow .2s, background .2s; cursor: pointer; }
+.btn:active { transform: scale(.98); }
+.btn-gold { background: linear-gradient(135deg, #edca6d, #c49c3e); color: #0b1327; box-shadow: 0 8px 24px -10px rgb(196 156 62 / .8); }
+.btn-gold:hover { box-shadow: 0 12px 30px -8px rgb(196 156 62 / .9); }
+.btn-navy { background: var(--color-navy); color: #fff; }
+.btn-navy:hover { background: var(--color-navy-3); }
+.btn-ghost { border: 1.5px solid rgb(255 255 255 / .35); color: #fff; }
+.btn-ghost:hover { background: rgb(255 255 255 / .1); }
+.btn-outline { border: 1.5px solid rgb(11 19 39 / .2); color: var(--color-navy); }
+.btn-outline:hover { background: rgb(11 19 39 / .05); }
+.input { width: 100%; border: 1.5px solid rgb(11 19 39 / .15); border-radius: .85rem; padding: .8rem 1rem; background: #fff; transition: border-color .2s, box-shadow .2s; }
+.input:focus { outline: none; border-color: var(--color-gold); box-shadow: 0 0 0 4px rgb(196 156 62 / .2); }
+.chip { display: inline-flex; align-items: center; gap: .35rem; border-radius: 999px; padding: .2rem .7rem; font-size: .75rem; font-weight: 700; }
+
+@keyframes float { 0%,100% { transform: translateY(0) } 50% { transform: translateY(-14px) } }
+@keyframes pulse-ring { 0% { transform: scale(.9); opacity: .7 } 100% { transform: scale(1.6); opacity: 0 } }
+@keyframes rise { from { opacity: 0; transform: translateY(18px) } to { opacity: 1; transform: none } }
+@keyframes spin-rev { to { transform: rotate(-360deg) } }
+@keyframes spin-fwd { to { transform: rotate(360deg) } }
+@keyframes breathe { 0%,100% { transform: scale(1); filter: drop-shadow(0 0 18px rgb(237 202 109 / .35)) } 50% { transform: scale(1.06); filter: drop-shadow(0 0 40px rgb(237 202 109 / .7)) } }
+.rise { animation: rise .7s cubic-bezier(.2,.7,.2,1) both; }
+.d1 { animation-delay: .1s } .d2 { animation-delay: .2s } .d3 { animation-delay: .3s } .d4 { animation-delay: .4s }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: .001ms !important; animation-iteration-count: 1 !important; transition-duration: .001ms !important; scroll-behavior: auto !important; }
+}

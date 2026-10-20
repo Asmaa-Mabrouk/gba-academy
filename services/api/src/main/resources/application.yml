@@ -1,0 +1,19 @@
+spring:
+  application.name: academy-api
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/gba}
+    username: ${DB_USER:gba}
+    password: ${DB_PASSWORD:gba}
+  flyway.enabled: true
+server.port: ${PORT:8080}
+management.endpoints.web.exposure.include: health,info
+academy:
+  jwt-secret: ${JWT_SECRET:change-me-change-me-change-me-change-me-0123}   # at least 32 chars; set a real secret in production
+  jwt-ttl-minutes: 1440
+  cors-origins: ${CORS_ORIGINS:http://localhost:3000}
+  integrations:            # fake | real. Real adapters are written by the integration developer (docs/integrations/)
+    payment: fake
+    einvoice: fake
+    video: fake
+    live: fake
+    messaging: fake
