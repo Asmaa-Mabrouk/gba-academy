@@ -9,3 +9,4 @@ target/
 # uploaded files (local storage adapter)
 services/api/data/
 data/uploads/
+qa/out/features.json
