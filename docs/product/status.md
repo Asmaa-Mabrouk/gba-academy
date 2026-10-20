@@ -23,5 +23,5 @@ Password reset and email verification, mentor payouts and statements, certificat
 - Web: type-checked and production-built; pages load in a browser in both languages.
 - Database: schema and seed run on PostgreSQL 16; catalogue SQL tested.
 - Web and mock mode: `qa/e2e.py` (221 checks) and `qa/e2e-features.py` (new features) both run against a production build.
-- Database: `scripts/db-check.sh` applies V1 to V7, runs `qa/db-scenarios.sql`, and `qa/sql-smoke.py` parses every SQL text block of the Java code against the real schema.
+- Database: `scripts/db-check.sh` applies V1 to V8, runs `qa/db-scenarios.sql`, and `qa/sql-smoke.py` parses every SQL text block of the Java code against the real schema.
 - **Java API has not been compiled or run** (the build environment could not download Maven dependencies). First step for the developer: `cd services/api && mvn test && mvn spring-boot:run`, then fix any compile errors.
