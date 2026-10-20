@@ -94,7 +94,7 @@ def A_public(b):
     pg.locator("header a[hreflang=en]").click(); pg.wait_for_url("**/en/courses**"); pg.wait_for_load_state("networkidle")
     check("A06", "language switch keeps path and query", pg.url.endswith("/en/courses?audience=kids"), pg.url)
     goto(pg, "/en")
-    check("A07", "home: 3 audience tracks", pg.locator("main section a[href*='audience=']").count() >= 3)
+    check("A07", "home: 3 audience tracks", pg.locator("main section a[href*='audience='], main section a[href$='/kids']").count() >= 3)
     check("A08", "home: featured courses (6 cards)", cards(pg) >= 6, cards(pg))
     check("A09", "home: live sessions block lists upcoming sessions", pg.locator("text=Live sessions coming up").count() == 1)
     check("A10", "home: exactly one h1", pg.locator("h1").count() == 1)
@@ -322,7 +322,7 @@ def D_admin(pg, st):
     goto(pg, f"/en/admin/courses/c-{slug}"); check("D16", "edit persists after reload", pg.locator("input[lang=en]").first.input_value() == "QA Course EDITED")
     # syllabus editing
     pg.locator("button:has-text('Add module')").click(); pg.locator("button:has-text('Add lesson')").click()
-    check("D17", "syllabus editor adds module and lesson rows", pg.locator("input[placeholder*='Lesson title']").count() == 2)
+    check("D17", "syllabus editor adds a module and a lesson that opens as a 4-step wizard", pg.locator("ol[aria-label=Lesson] li").count() == 4)
     pg.locator("main button:has-text('Save')").first.click(); pg.wait_for_timeout(500)
     # unpublish
     goto(pg, "/en/admin/courses"); pg.locator("input[placeholder]").first.fill("QA Course"); pg.wait_for_timeout(200)
