@@ -20,6 +20,6 @@ export const TERMS_VERSION = "2026-10-draft";
 export const FOUNDER = {
   name: { ar: "بدر برشيد", en: "Badr Burshaid" },
   role: { ar: "مؤسس ورئيس المنتدى العالمي لإدارة المشاريع", en: "Founder & Chairman, Global Project Management Forum" },
-  photo: "/brand/badr-burshaid.jpg",
+  photo: "/brand/badr-burshaid.webp",
   signatureImage: null as string | null, // e.g. "/brand/signature-badr.png" once provided
 };

@@ -61,15 +61,10 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
               {t.home.trust.map((x) => <li key={x} className="flex items-center gap-2"><span className="text-gold-deep">✓</span>{x}</li>)}
             </ul>
           </div>
-          <div className="relative mx-auto w-full max-w-[400px] rise d2">
-            <div className="absolute -inset-3 rounded-[2.2rem] bg-gradient-to-br from-gold-light/60 via-transparent to-violet/20 blur-sm" aria-hidden="true" />
-            <div className="relative overflow-hidden rounded-[2rem] bg-[#1b0f2b] shadow-2xl ring-1 ring-gold/40">
-              <Image src={FOUNDER.photo} alt={tr(FOUNDER.name, locale)} width={498} height={912} priority className="h-auto w-full" />
-              <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-[#1b0f2b] via-[#1b0f2b]/80 to-transparent p-5 pt-14 text-white">
-                <p className="text-lg font-black">{tr(FOUNDER.name, locale)}</p>
-                <p className="text-sm text-white/75">{tr(FOUNDER.role, locale)}</p>
-              </div>
-            </div>
+          <div className="relative mx-auto w-full max-w-[440px] rise d2">
+            <div className="absolute inset-x-6 bottom-0 top-16 rounded-full bg-gradient-to-b from-gold-light/50 via-gold/20 to-transparent blur-2xl" aria-hidden="true" />
+            <div className="absolute inset-x-10 bottom-0 top-24 rounded-t-[999px] border border-b-0 border-gold/30" aria-hidden="true" />
+            <Image src={FOUNDER.photo} alt={tr(FOUNDER.name, locale)} width={635} height={894} priority className="relative h-auto w-full drop-shadow-[0_20px_30px_rgba(11,19,39,.18)] [mask-image:linear-gradient(to_bottom,#000_88%,transparent)]" />
           </div>
         </div>
       </section>
