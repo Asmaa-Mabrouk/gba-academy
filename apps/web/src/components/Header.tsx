@@ -31,8 +31,8 @@ export function Header({ locale, t }: { locale: Locale; t: Dict }) {
     <>
     <header className="sticky top-0 z-50 border-b border-navy/10 bg-cream/90 text-navy backdrop-blur-xl">
       <div className="container-x flex h-[72px] items-center gap-6">
-        <Link href={L("")} className="flex items-center gap-3" aria-label={t.brand.name}>
-          <img src="/favicon-64.png" alt="" width={40} height={40} className="h-10 w-10" />
+        <Link href={L("")} className="flex shrink-0 items-center gap-3" aria-label={t.brand.name}>
+          <img src="/favicon-64.png" alt="" width={40} height={40} className="h-10 w-10 shrink-0" />
           <span className="hidden whitespace-nowrap leading-tight min-[1500px]:block">
             <span className="block text-[15px] font-extrabold gold-text">{t.brand.name}</span>
             <span className="block text-[11px] text-mute">{t.brand.tagline}</span>
@@ -43,9 +43,9 @@ export function Header({ locale, t }: { locale: Locale; t: Dict }) {
             <Link key={l.href} href={l.href} className="whitespace-nowrap rounded-full px-3 py-2 text-sm font-medium text-navy/80 transition hover:bg-navy/5 hover:text-gold-deep">{l.label}</Link>
           ))}
         </nav>
-        <div className="ms-auto flex items-center gap-2">
-          <Link href={switchHref} onClick={(e) => { e.preventDefault(); router.push(switchHref + window.location.search); }} className="flex items-center gap-2 whitespace-nowrap rounded-full border border-navy/20 py-1.5 ps-2 pe-3.5 text-sm font-bold transition hover:border-gold hover:bg-white" hrefLang={other} lang={other} title={t.nav.language} aria-label={t.nav.language}>
-            <span className={`fi ${other === "ar" ? "fi-sa" : "fi-gb"} rounded-sm`} style={{ width: 22, height: 16, backgroundSize: "cover" }} aria-hidden="true" />{t.nav.language}
+        <div className="ms-auto flex min-w-0 items-center gap-1.5 sm:gap-2">
+          <Link href={switchHref} onClick={(e) => { e.preventDefault(); router.push(switchHref + window.location.search); }} className="flex items-center gap-2 whitespace-nowrap rounded-full border border-navy/20 py-1.5 ps-2 pe-2 sm:pe-3.5 text-sm font-bold transition hover:border-gold hover:bg-white" hrefLang={other} lang={other} title={t.nav.language} aria-label={t.nav.language}>
+            <span className={`fi ${other === "ar" ? "fi-sa" : "fi-gb"} rounded-sm`} style={{ width: 22, height: 16, backgroundSize: "cover" }} aria-hidden="true" /><span className="hidden sm:inline">{t.nav.language}</span>
           </Link>
           <Link href={L("/cart")} className="relative rounded-full p-2 hover:bg-navy/5" aria-label={t.nav.cart}>
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><path d="M3 4h2l2.4 11.2a2 2 0 002 1.6h7.2a2 2 0 002-1.5L20 8H6.2"/><circle cx="10" cy="20" r="1.2"/><circle cx="17" cy="20" r="1.2"/></svg>
@@ -54,7 +54,7 @@ export function Header({ locale, t }: { locale: Locale; t: Dict }) {
           {ready && !user && (
             <>
               <Link href={L("/login")} className="hidden px-3 py-2 text-sm font-medium hover:text-gold-deep sm:block">{t.nav.login}</Link>
-              <Link href={L("/register")} className="btn btn-gold !px-5 !py-2 text-sm">{t.nav.register}</Link>
+              <Link href={L("/register")} className="btn btn-gold !px-4 !py-2 text-sm sm:!px-5">{t.nav.register}</Link>
             </>
           )}
           {ready && user && (

@@ -35,38 +35,71 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
 
   return (
     <>
-      {/* HERO: slogan, founder photo + word, signature placeholder */}
-      <section className="band relative overflow-hidden">
-        <div className="pointer-events-none absolute -end-40 -top-32 opacity-[.22]" aria-hidden="true"><GpmfSpiral size={520} /></div>
-        <div className="container-x relative grid items-center gap-10 pb-24 pt-12 lg:grid-cols-[1.1fr_.9fr] lg:pb-28 lg:pt-16">
+      {/* HERO: luxury layout. Slogan, founder word, arch-framed portrait, glass nameplate. */}
+      <section className="luxe-hero relative overflow-hidden">
+        <div className="pointer-events-none absolute -end-48 top-1/2 -translate-y-1/2 opacity-[.16]" aria-hidden="true"><GpmfSpiral size={640} /></div>
+        <div className="container-x relative grid items-center gap-12 pb-28 pt-12 lg:grid-cols-[1.05fr_.95fr] lg:pb-32 lg:pt-14">
           <div>
-            <span className="chip rise border border-gold/50 bg-white/70 text-gold-deep">{t.hero.badge}</span>
-            <h1 className="rise d1 mt-5 text-balance text-4xl font-black leading-[1.3] text-navy sm:text-5xl">{t.hero.slogan}</h1>
+            <span className="rise inline-flex items-center gap-2 rounded-full border border-gold/40 bg-white/70 px-4 py-1.5 text-xs font-bold tracking-wide text-gold-deep shadow-sm backdrop-blur">
+              <span className="gold-bg h-2 w-2 rounded-full" aria-hidden="true" />{t.hero.badge}
+            </span>
+            <h1 className="rise d1 mt-6 text-balance text-5xl font-black leading-[1.25] text-navy lg:text-[3.6rem]">
+              {t.hero.slogan.split(". ")[0]}.<br /><span className="gold-text">{t.hero.slogan.split(". ")[1]}</span>
+            </h1>
+            <div className="rise d1 mt-5 flex items-center gap-3" aria-hidden="true">
+              <span className="h-px w-20 bg-gradient-to-r from-gold to-transparent rtl:bg-gradient-to-l" /><span className="gold-bg h-2.5 w-2.5 rotate-45" /><span className="h-px w-8 bg-gold/40" />
+            </div>
             <p className="rise d2 mt-5 max-w-xl text-lg leading-8 text-navy/70">{t.hero.sub}</p>
-            <figure className="rise d3 card relative mt-8 max-w-xl p-6 ps-8">
-              <span className="gold-bg absolute inset-y-6 start-0 w-1.5 rounded-full" aria-hidden="true" />
-              <p className="text-xs font-bold uppercase tracking-wide text-gold-deep">{t.hero.eyebrow}</p>
-              <blockquote className="mt-2 text-lg font-medium leading-8 text-navy">“{t.hero.quote}”</blockquote>
-              <figcaption className="mt-4 flex flex-wrap items-end justify-between gap-4">
+            <figure className="rise d3 relative mt-8 max-w-xl overflow-hidden rounded-3xl border border-white/70 bg-white/65 p-7 ps-9 shadow-[0_30px_60px_-30px_rgba(109,60,7,.35)] backdrop-blur-xl">
+              <span className="gold-bg absolute inset-y-0 start-0 w-1.5" aria-hidden="true" />
+              <span className="gold-text pointer-events-none absolute -top-2 end-5 select-none font-serif text-[7rem] leading-none opacity-30" aria-hidden="true">”</span>
+              <p className="text-[11px] font-extrabold uppercase tracking-[.2em] text-gold-deep">{t.hero.eyebrow}</p>
+              <blockquote className="relative mt-3 text-[1.15rem] font-medium leading-9 text-navy">{t.hero.quote}</blockquote>
+              <figcaption className="mt-5 flex flex-wrap items-end justify-between gap-4 border-t border-gold/25 pt-4">
                 <span><b className="block text-navy">{tr(FOUNDER.name, locale)}</b><span className="text-sm text-mute">{tr(FOUNDER.role, locale)}</span></span>
-                <Signature label={t.hero.signature} image={FOUNDER.signatureImage} />
+                <Signature label={t.hero.signature} image={FOUNDER.signatureImage} name={FOUNDER.name.en} />
               </figcaption>
               {DRAFT_CONTENT && <p className="mt-3 text-xs text-gold-deep">{t.hero.draft}</p>}
             </figure>
             <div className="rise d4 mt-8 flex flex-wrap gap-3">
-              <Link href={L("/courses")} className="btn btn-gold">{t.home.ctaPrimary}</Link>
-              <Link href={L("/courses?mode=live")} className="btn btn-ghost">{t.home.ctaSecondary}</Link>
+              <Link href={L("/courses")} className="btn btn-gold btn-shine !px-8 !py-3.5 text-base">{t.home.ctaPrimary}</Link>
+              <Link href={L("/courses?mode=live")} className="btn btn-ghost !px-7 !py-3.5 bg-white/50 backdrop-blur">{t.home.ctaSecondary}</Link>
             </div>
-            <ul className="mt-7 flex flex-wrap gap-x-6 gap-y-2 text-sm text-navy/70">
-              {t.home.trust.map((x) => <li key={x} className="flex items-center gap-2"><span className="text-gold-deep">✓</span>{x}</li>)}
+            <ul className="mt-7 flex flex-wrap gap-x-6 gap-y-2 text-sm text-navy/75">
+              {t.home.trust.map((x) => <li key={x} className="flex items-center gap-2"><span className="gold-bg flex h-4 w-4 items-center justify-center rounded-full text-[9px] font-black text-navy">✓</span>{x}</li>)}
             </ul>
           </div>
-          <div className="relative mx-auto w-full max-w-[440px] rise d2">
-            <div className="absolute inset-x-6 bottom-0 top-16 rounded-full bg-gradient-to-b from-gold-light/50 via-gold/20 to-transparent blur-2xl" aria-hidden="true" />
-            <div className="absolute inset-x-10 bottom-0 top-24 rounded-t-[999px] border border-b-0 border-gold/30" aria-hidden="true" />
-            <Image src={FOUNDER.photo} alt={tr(FOUNDER.name, locale)} width={635} height={894} priority className="relative h-auto w-full drop-shadow-[0_20px_30px_rgba(11,19,39,.18)] [mask-image:linear-gradient(to_bottom,#000_88%,transparent)]" />
+
+          <div className="rise d2 relative mx-auto w-full max-w-[470px]">
+            <div className="absolute inset-x-0 bottom-10 top-28 rounded-full bg-gradient-to-b from-gold-light/60 via-gold/15 to-transparent blur-3xl" aria-hidden="true" />
+            {/* double arch frame */}
+            <div className="absolute inset-x-0 bottom-0 top-20 rounded-t-[999px] border border-b-0 border-gold/30" aria-hidden="true" />
+            <div className="absolute inset-x-5 bottom-0 top-28 rounded-t-[999px] p-[2px]" style={{ background: "linear-gradient(165deg,#edca6d,#c49c3e 45%,rgba(196,156,62,.12))" }} aria-hidden="true">
+              <div className="h-full w-full rounded-t-[999px]" style={{ background: "radial-gradient(80% 60% at 50% 20%, #fffdf7, #f6efdc 70%, #efe4c8)" }} />
+            </div>
+            <Image src={FOUNDER.photo} alt={tr(FOUNDER.name, locale)} width={1000} height={1402} priority sizes="(min-width:1024px) 470px, 90vw"
+              className="relative z-10 h-auto w-full drop-shadow-[0_28px_30px_rgba(109,60,7,.22)]" style={{ maskImage: "linear-gradient(to bottom,#000 88%,transparent), linear-gradient(to right,transparent,#000 7%,#000 93%,transparent)", maskComposite: "intersect", WebkitMaskComposite: "source-in" }} />
+            {/* floating glass chips */}
+            <div className="animate-float absolute start-0 top-40 z-20 flex items-center gap-2 rounded-2xl border border-white/70 bg-white/75 px-3.5 py-2.5 text-xs font-bold text-navy shadow-xl backdrop-blur-md">
+              <span className="gold-bg flex h-6 w-6 items-center justify-center rounded-full text-[11px] text-navy">★</span>{t.home.trust[0]}
+            </div>
+            <div className="absolute end-0 top-[58%] z-20 flex items-center gap-2 rounded-2xl border border-white/70 bg-white/75 px-3.5 py-2.5 text-xs font-bold text-navy shadow-xl backdrop-blur-md" style={{ animation: "float 8s ease-in-out 1s infinite" }}>
+              <span className="gold-bg flex h-6 w-6 items-center justify-center rounded-full text-[11px] text-navy">🎓</span>{t.home.trust[1]}
+            </div>
+            {/* nameplate */}
+            <div className="absolute inset-x-6 bottom-0 z-20 translate-y-1/2 rounded-2xl border border-white/70 bg-white/80 p-4 shadow-[0_24px_50px_-18px_rgba(11,19,39,.35)] backdrop-blur-xl">
+              <div className="flex items-center gap-3">
+                <img src="/brand/gpmf-flower-256.png" alt="" width={40} height={40} className="h-10 w-10" />
+                <div className="min-w-0">
+                  <p className="font-black text-navy">{tr(FOUNDER.name, locale)}</p>
+                  <p className="truncate text-xs text-mute">{tr(FOUNDER.role, locale)}</p>
+                </div>
+              </div>
+              <span className="absolute inset-x-6 top-0 h-px bg-gradient-to-r from-transparent via-gold to-transparent" aria-hidden="true" />
+            </div>
           </div>
         </div>
+        <span className="absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-gold/60 to-transparent" aria-hidden="true" />
       </section>
 
       {/* TRACKS */}

@@ -90,3 +90,13 @@ body { font-family: "Tajawal", "Roboto", system-ui, sans-serif; background: var(
   .container-x { padding: 0 !important; max-width: none !important; }
   #certificate { width: 100vw !important; height: 100vh !important; box-shadow: none !important; margin: 0 !important; }
 }
+
+/* Luxury hero background: ivory, soft gold light, fine concentric lines */
+.luxe-hero { background:
+  radial-gradient(55% 70% at 85% 35%, rgb(237 202 109 / .35), transparent 70%),
+  radial-gradient(45% 60% at 5% 100%, rgb(167 89 209 / .07), transparent 70%),
+  repeating-radial-gradient(circle at 80% 45%, transparent 0 46px, rgb(196 156 62 / .07) 46px 47px),
+  linear-gradient(180deg, #fffdf8 0%, #f7f0df 100%); }
+.btn-shine { position: relative; overflow: hidden; }
+.btn-shine::after { content: ""; position: absolute; inset: 0; background: linear-gradient(110deg, transparent 35%, rgb(255 255 255 / .55) 50%, transparent 65%); transform: translateX(-120%); animation: shine 3.8s ease-in-out 1.2s infinite; }
+@keyframes shine { 0%, 55% { transform: translateX(-120%) } 100% { transform: translateX(120%) } }

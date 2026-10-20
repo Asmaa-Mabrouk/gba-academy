@@ -715,7 +715,7 @@
    "id": "D10",
    "name": "create course saves and redirects to its edit page",
    "pass": true,
-   "detail": "http://localhost:3100/en/admin/courses/c-qa-course-23119"
+   "detail": "http://localhost:3100/en/admin/courses/c-qa-course-23770"
   },
   {
    "id": "D11",
@@ -937,13 +937,13 @@
    "id": "F01-ar",
    "name": "mobile 390px no horizontal overflow /ar",
    "pass": true,
-   "detail": "[False, ['DIV.pointer-events-none absolute -end-40 -to', 'DIV.relative ', 'DIV.absolute inset-[-12%] rounded-full']]"
+   "detail": "[False, ['DIV.pointer-events-none absolute -end-48 top', 'DIV.relative ', 'DIV.absolute inset-[-12%] rounded-full']]"
   },
   {
    "id": "F01-en",
    "name": "mobile 390px no horizontal overflow /en",
    "pass": true,
-   "detail": "[False, ['DIV.pointer-events-none absolute -end-40 -to', 'DIV.relative ', 'DIV.absolute inset-[-12%] rounded-full']]"
+   "detail": "[False, ['DIV.pointer-events-none absolute -end-48 top', 'DIV.relative ', 'DIV.absolute inset-[-12%] rounded-full']]"
   },
   {
    "id": "F01-ar-courses",
@@ -1117,7 +1117,7 @@
    "id": "G04",
    "name": "home loads in < 3s locally (informational: DCL/load ms, KB)",
    "pass": true,
-   "detail": "{'dcl_load_ms': [75, 486], 'kb': 677}"
+   "detail": "{'dcl_load_ms': [163, 294], 'kb': 781}"
   },
   {
    "id": "G05",
@@ -1261,13 +1261,13 @@
    "id": "H15g",
    "name": "Arabic toast sits on the right side",
    "pass": true,
-   "detail": "{'x': 928.0740966796875, 'y': 84, 'width': 416, 'height': 56}"
+   "detail": "{'x': 928, 'y': 84, 'width': 416, 'height': 56}"
   },
   {
    "id": "H15h",
    "name": "English toast sits on the left side",
    "pass": true,
-   "detail": "{'x': 15.926076889038086, 'y': 84, 'width': 416.00000953674316, 'height': 56}"
+   "detail": "{'x': 16, 'y': 84, 'width': 416, 'height': 56}"
   },
   {
    "id": "H15i",
