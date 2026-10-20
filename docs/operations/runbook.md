@@ -22,3 +22,9 @@ Build the two Docker images (`apps/web/Dockerfile`, `services/api/Dockerfile`), 
 - 401 after login: `JWT_SECRET` changed or token expired (24 h).
 - Flyway checksum error: someone edited an applied migration. Revert it and add a new one.
 - Regenerate sample data: `node --experimental-strip-types scripts/generate-seed.mjs` (only for fresh databases).
+
+## Health, scaling and checks
+- Probes: `/actuator/health/liveness` and `/actuator/health/readiness`. Shutdown is graceful (25 s).
+- Pool: `DB_POOL_MAX` (default 10), `DB_POOL_MIN` (default 2). Keep instances x pool below Postgres `max_connections`.
+- Migration check: `PGUSER=postgres ./scripts/db-check.sh` against any PostgreSQL 16 server.
+- Review and roadmap: `docs/architecture-review.md`.

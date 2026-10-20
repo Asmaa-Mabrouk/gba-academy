@@ -27,3 +27,12 @@ Source of truth: `services/api/src/main/resources/db/migration/V1__schema.sql`.
 | `reviews` | Only enrolled users may post (checked in `LearningController`). Mentor reply is a JSONB. |
 
 Rules: never store card data. Add columns with a new Flyway migration. If the syllabus needs per-lesson analytics, promote `modules` to its own tables in a new migration.
+
+## Integrity and indexes (V5)
+- `users`: unique on `lower(email)`.
+- `orders`: `total = subtotal + vat`, all amounts >= 0. `order_lines.price_halalas >= 0`.
+- `enrollments`: `progress_pct` 0-100; one enrollment per user and offering.
+- `live_sessions`: `0 <= seats_taken <= seats`, `duration_min > 0`.
+- `courses`/`mentors`: rating 0-5.
+- Indexes cover every foreign key, `orders(user_id, created_at desc)`, `live_sessions(offering_id, starts_at)`, published courses by popularity, and trigram search on course title/subtitle.
+- Verify with `scripts/db-check.sh` (needs a PostgreSQL server; CI does this on every push).

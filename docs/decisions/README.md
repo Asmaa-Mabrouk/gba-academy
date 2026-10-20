@@ -11,3 +11,7 @@
 | D7 | Guardian-created accounts for children | Child safety and consent |
 | D8 | Spring JDBC (JdbcClient) not JPA | SQL stays visible and reviewable; JSON assembled in PostgreSQL |
 | D9 | Arabic default, `/ar` and `/en` URL prefixes | Arabic first market, good SEO per language |
+| D10 | Database enforces integrity (CHECKs, case-insensitive unique e-mail) in V5 | The API is not the only writer; bad data must be impossible, not just unlikely |
+| D11 | Trigram (`pg_trgm`) indexes for catalogue search before adding a search engine | Keeps one datastore until the catalogue is far larger |
+| D12 | Virtual threads, graceful shutdown, small Hikari pool, health probes | Cheap scale-out for a blocking JDBC app on Java 21 |
+| D13 | CI runs web build, `mvn test` and a real PostgreSQL migration check (`scripts/db-check.sh`) | Migrations and constraints are tested against the real engine on every change |

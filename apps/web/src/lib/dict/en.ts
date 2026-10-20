@@ -396,5 +396,6 @@ export const en: typeof ar = {
     toCert: "{n} to go for your certificate",
     allDone: "All lessons done",
   },
+  errorPage: { title: "Something went wrong", text: "The page could not finish loading. Please try again, and contact us if it keeps happening.", retry: "Try again", loading: "Loading" },
   notFound: { title: "Page not found", text: "The link may have changed. Head back to the home page.", home: "Home" },
 };

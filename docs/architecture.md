@@ -38,3 +38,5 @@ services/api/src/main/resources/db/migration   Flyway SQL
 - **Money**: integer halalas, VAT included in shown prices.
 - **Auth**: BCrypt passwords, stateless JWT (`Authorization: Bearer`). No server sessions.
 - **i18n**: URL prefix `/ar` or `/en`; `dir` is set on `<html>`.
+
+See `docs/architecture-review.md` for the scalability review, what changed and the roadmap.
