@@ -3,7 +3,7 @@ import type { Locale } from "../types";
 
 export const adminAr = {
   title: "لوحة الإدارة",
-  nav: { dashboard: "نظرة عامة", courses: "الدورات", mentors: "المرشدون", orders: "الطلبات", promos: "أكواد الخصم", users: "المستخدمون", reviews: "التقييمات", backToSite: "العودة للموقع" },
+  nav: { dashboard: "نظرة عامة", courses: "الدورات", mentors: "المرشدون", orders: "الطلبات", promos: "أكواد الخصم", banners: "الإعلانات", users: "المستخدمون", reviews: "التقييمات", backToSite: "العودة للموقع" },
   common: {
     save: "حفظ", saving: "جارٍ الحفظ…", saved: "تم الحفظ", cancel: "إلغاء", add: "إضافة", edit: "تعديل", remove: "حذف", back: "رجوع",
     confirmDelete: "هل أنت متأكد من الحذف؟", loading: "جارٍ التحميل…", empty: "لا توجد بيانات", search: "بحث…",
@@ -23,6 +23,7 @@ export const adminAr = {
       invalid_join_url: "رابط الجلسة يجب أن يبدأ بـ https://", meeting_unavailable: "تعذّر إنشاء رابط الاجتماع الآن. حاول لاحقًا أو الصق رابطًا يدويًا", seats_below_taken: "المقاعد أقل من عدد الحاجزين", invalid_seats: "عدد المقاعد غير صحيح",
       missing_startsAt: "حدّد موعد كل جلسة", invalid_startsAt: "موعد الجلسة غير صحيح", slug_locked: "لا يمكن تغيير الرابط المختصر بعد الإنشاء", invalid_price: "السعر غير صحيح", invalid_image_url: "رابط الصورة غير صحيح",
       invalid_code: "الرمز: ٣ إلى ٣٢ حرفًا إنجليزيًا كبيرًا أو أرقامًا أو - أو _", code_exists: "هذا الرمز موجود بالفعل", invalid_percent: "نسبة الخصم من ١ إلى ١٠٠", invalid_max_uses: "عدد مرات الاستخدام يجب أن يكون ١ أو أكثر",
+      invalid_link: "الرابط يجب أن يبدأ بـ https:// أو يكون مسارًا داخليًا يبدأ بـ /", invalid_endsAt: "تاريخ الانتهاء يجب أن يكون بعد البداية", invalid_theme: "لون غير صحيح",
       invalid_expiry: "تاريخ الانتهاء غير صحيح", max_uses_below_used: "لا يمكن جعل الحد أقل من عدد مرات الاستخدام الفعلية", promo_in_use: "تم استخدام هذا الرمز، عطّله بدل حذفه",
     },
   },
@@ -81,6 +82,13 @@ export const adminAr = {
     quiz: { title: "تصميم الاختبار", pass: "نسبة النجاح (%)", addQuestion: "إضافة سؤال", question: "السؤال", option: "الخيار", addOption: "إضافة خيار", correct: "الإجابة الصحيحة", explanation: "شرح الإجابة (اختياري)", removeQuestion: "حذف السؤال", empty: "لا توجد أسئلة بعد", needTwo: "أضف خيارين على الأقل", needCorrect: "حدّد الإجابة الصحيحة", needPrompt: "اكتب نص السؤال", questionsN: "سؤال", ready: "الاختبار جاهز", incomplete: "الاختبار غير مكتمل", hintGrading: "يُصحَّح الاختبار في الخادم ولا يرى المتعلم الإجابات الصحيحة إلا بعد التسليم." },
     mentorPhoto: "صورة المرشد", photoUpload: "رفع صورة", photoChange: "تغيير الصورة", photoRemove: "إزالة الصورة", photoHint: "صورة مربعة واضحة. تظهر في صفحة المرشد وبطاقات الدورات.",
   },
+  banners: {
+    title: "الإعلانات", new: "إعلان جديد", editTitle: "تعديل الإعلان", newTitle: "إعلان جديد", titleField: "العنوان", subtitleField: "النص الفرعي", cta: "نص الزر", link: "رابط التحويل",
+    linkHint: "رابط كامل يبدأ بـ https:// (مثل موقع GPMF) أو مسار داخل الموقع مثل /courses. اتركه فارغًا لإعلان بلا زر.", theme: "اللون", themes: { navy: "كحلي", gold: "ذهبي", teal: "تركوازي", violet: "بنفسجي" },
+    image: "صورة (اختياري)", imageHint: "صورة أفقية تظهر بجانب النص. 1200×400 تقريبًا.", upload: "رفع صورة", removeImage: "إزالة الصورة", starts: "يبدأ في", ends: "ينتهي في", windowHint: "اتركهما فارغين ليظهر الإعلان دائمًا ما دام مفعّلًا. بتوقيت الرياض.",
+    active: "مفعّل", order: "الترتيب", orderHint: "الأصغر يظهر أولًا", status: "الحالة", statusNames: { live: "ظاهر الآن", scheduled: "مجدول", ended: "انتهى", off: "متوقف" },
+    saved: "تم حفظ الإعلان", deleted: "تم حذف الإعلان", deleteConfirm: "حذف هذا الإعلان؟", preview: "معاينة", empty: "لا توجد إعلانات. أضف أول إعلان ليظهر في الصفحة الرئيسية.", howTo: "تظهر الإعلانات الفعّالة في شريط متحرك أعلى الصفحة الرئيسية. يمكنك إضافة عدة إعلانات وترتيبها وجدولتها.",
+  },
   promos: {
     title: "أكواد الخصم", new: "كود جديد", editTitle: "تعديل الكود", newTitle: "كود خصم جديد", code: "الكود", codeHint: "حروف إنجليزية كبيرة وأرقام فقط، مثال: WELCOME10", generate: "توليد كود", percent: "نسبة الخصم (%)",
     maxUses: "عدد مرات الاستخدام", maxUsesHint: "اتركه فارغًا لعدد غير محدود. كل متعلم يستخدم الكود مرة واحدة.", unlimited: "غير محدود", expires: "تاريخ الانتهاء", expiresHint: "اتركه فارغًا ليبقى الكود صالحًا. ينتهي مع نهاية اليوم بتوقيت الرياض.", never: "بلا انتهاء",
@@ -99,7 +107,7 @@ export const adminAr = {
 
 export const adminEn: typeof adminAr = {
   title: "Admin portal",
-  nav: { dashboard: "Overview", courses: "Courses", mentors: "Mentors", orders: "Orders", promos: "Promo codes", users: "Users", reviews: "Reviews", backToSite: "Back to site" },
+  nav: { dashboard: "Overview", courses: "Courses", mentors: "Mentors", orders: "Orders", promos: "Promo codes", banners: "Announcements", users: "Users", reviews: "Reviews", backToSite: "Back to site" },
   common: {
     save: "Save", saving: "Saving…", saved: "Saved", cancel: "Cancel", add: "Add", edit: "Edit", remove: "Delete", back: "Back",
     confirmDelete: "Are you sure you want to delete this?", loading: "Loading…", empty: "Nothing here yet", search: "Search…",
@@ -119,6 +127,7 @@ export const adminEn: typeof adminAr = {
       invalid_join_url: "The session link must start with https://", meeting_unavailable: "Could not create the meeting link now. Try again later or paste a link by hand", seats_below_taken: "Seats are fewer than the number already booked", invalid_seats: "Invalid number of seats",
       missing_startsAt: "Set the start time of every session", invalid_startsAt: "The session start time is not valid", slug_locked: "The slug cannot change after creation", invalid_price: "Invalid price", invalid_image_url: "Invalid image link",
       invalid_code: "Code: 3 to 32 capital English letters, digits, - or _", code_exists: "This code already exists", invalid_percent: "Discount must be between 1 and 100 percent", invalid_max_uses: "Number of uses must be 1 or more",
+      invalid_link: "The link must start with https:// or be a path on this site starting with /", invalid_endsAt: "The end must be after the start", invalid_theme: "Invalid colour",
       invalid_expiry: "Invalid expiry date", max_uses_below_used: "The limit cannot be lower than the number of times it was already used", promo_in_use: "This code has been used. Deactivate it instead of deleting",
     },
   },
@@ -176,6 +185,13 @@ export const adminEn: typeof adminAr = {
     reviewTitle: "Ready?", checks: { title: "Title in Arabic and English", content: "Content", quiz: "Quiz questions", files: "Files attached", minutes: "Duration" }, ok: "Done", missing: "Missing",
     quiz: { title: "Quiz designer", pass: "Pass mark (%)", addQuestion: "Add question", question: "Question", option: "Option", addOption: "Add option", correct: "Correct answer", explanation: "Explanation (optional)", removeQuestion: "Delete question", empty: "No questions yet", needTwo: "Add at least two options", needCorrect: "Mark the correct answer", needPrompt: "Write the question", questionsN: "questions", ready: "Quiz is ready", incomplete: "Quiz is incomplete", hintGrading: "The quiz is graded on the server. Learners only see the right answers after submitting." },
     mentorPhoto: "Mentor photo", photoUpload: "Upload photo", photoChange: "Change photo", photoRemove: "Remove photo", photoHint: "A clear square photo. Shown on the mentor page and course cards.",
+  },
+  banners: {
+    title: "Announcements", new: "New announcement", editTitle: "Edit announcement", newTitle: "New announcement", titleField: "Title", subtitleField: "Subtitle", cta: "Button text", link: "Redirect link",
+    linkHint: "A full link starting with https:// (for example the GPMF website) or a path on this site such as /courses. Leave empty for a banner without a button.", theme: "Colour", themes: { navy: "Navy", gold: "Gold", teal: "Teal", violet: "Violet" },
+    image: "Image (optional)", imageHint: "A wide image shown beside the text. About 1200×400.", upload: "Upload image", removeImage: "Remove image", starts: "Starts", ends: "Ends", windowHint: "Leave both empty to show it whenever it is active. Riyadh time.",
+    active: "Active", order: "Order", orderHint: "Lower shows first", status: "Status", statusNames: { live: "Live now", scheduled: "Scheduled", ended: "Ended", off: "Off" },
+    saved: "Announcement saved", deleted: "Announcement deleted", deleteConfirm: "Delete this announcement?", preview: "Preview", empty: "No announcements yet. Add the first one to show it on the home page.", howTo: "Active announcements rotate in a slider at the top of the home page. Add several, order them and schedule them.",
   },
   promos: {
     title: "Promo codes", new: "New code", editTitle: "Edit code", newTitle: "New promo code", code: "Code", codeHint: "Capital English letters and digits only, e.g. WELCOME10", generate: "Generate code", percent: "Discount (%)",

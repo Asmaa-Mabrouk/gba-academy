@@ -272,6 +272,7 @@ export const en: typeof ar = {
     expires: "Access ends",
     needLogin: "Log in to see your courses",
   },
+  banner: { label: "Academy announcements", prev: "Previous announcement", next: "Next announcement", goTo: "Go to announcement", pause: "Pause autoplay", play: "Start autoplay" },
   learn: {
     lessonList: "Lessons",
     watch: "Watch the lesson", videoMissing: "No video has been uploaded for this lesson yet.", materials: "Lesson files", courseMaterials: "Course files", download: "Download", lessonAbout: "About this lesson",

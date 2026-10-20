@@ -239,3 +239,10 @@ export interface PromoQuote { code: string; percentOff: number; grossHalalas: nu
 // ---- uploads ----
 export type UploadKind = "image" | "video" | "document";
 export interface UploadedFile { id: string; url: string; name: string; size: number; kind: UploadKind; contentType: string }
+
+// ---- announcement banners (ads slider) ----
+export type BannerTheme = "navy" | "gold" | "teal" | "violet";
+export interface Banner {
+  id: string; title: Bilingual; subtitle: Bilingual; ctaLabel: Bilingual; linkUrl: string | null; imageUrl: string | null;
+  theme: BannerTheme; startsAt: string | null; endsAt: string | null; active: boolean; sortOrder: number; live?: boolean;
+}

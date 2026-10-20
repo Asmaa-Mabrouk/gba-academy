@@ -30,7 +30,7 @@ export function AdminShell({ locale, children }: { locale: Locale; children: Rea
 
   const items = [
     ["", a.nav.dashboard, "▦"], ["/courses", a.nav.courses, "▤"], ["/mentors", a.nav.mentors, "☺"],
-    ["/orders", a.nav.orders, "$"], ["/promos", a.nav.promos, "%"], ["/users", a.nav.users, "☰"], ["/reviews", a.nav.reviews, "★"],
+    ["/orders", a.nav.orders, "$"], ["/promos", a.nav.promos, "%"], ["/banners", a.nav.banners, "▭"], ["/users", a.nav.users, "☰"], ["/reviews", a.nav.reviews, "★"],
   ] as const;
   const active = (p: string) => (p === "" ? path === `/${locale}/admin` : path.startsWith(L(p)));
 

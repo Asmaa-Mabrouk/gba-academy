@@ -4,7 +4,8 @@
 //    pages, which are rendered on the server from the built-in sample data. Use http mode for a real admin.
 import { COURSES, MENTORS, REVIEWS } from "./mock-data";
 import { http, idOf, isMock, K, read, seedUsers, write, ApiError } from "./api";
-import type { AdminMentor, AdminOrder, AdminReview, AdminStats, AdminUser, Bilingual, Course, Mentor, PromoCode, Review, Role } from "./types";
+import { SAMPLE_BANNERS } from "./api";
+import type { AdminMentor, Banner, AdminOrder, AdminReview, AdminStats, AdminUser, Bilingual, Course, Mentor, PromoCode, Review, Role } from "./types";
 
 export interface AdminApi {
   stats(t: string): Promise<AdminStats>;
@@ -18,6 +19,9 @@ export interface AdminApi {
   promos(t: string): Promise<PromoCode[]>;
   savePromo(t: string, p: Partial<PromoCode> & { code?: string }, isNew: boolean): Promise<PromoCode>;
   deletePromo(t: string, id: string): Promise<void>;
+  banners(t: string): Promise<Banner[]>;
+  saveBanner(t: string, b: Partial<Banner>, isNew: boolean): Promise<Banner>;
+  deleteBanner(t: string, id: string): Promise<void>;
   mentors(t: string): Promise<AdminMentor[]>;
   saveMentor(t: string, m: AdminMentor, isNew: boolean): Promise<AdminMentor>;
   users(t: string): Promise<AdminUser[]>;
@@ -40,6 +44,9 @@ const httpAdmin: AdminApi = {
   promos: (t) => http("/admin/promos", { token: t }),
   savePromo: (t, p, isNew) => http(isNew ? "/admin/promos" : `/admin/promos/${p.id}`, { method: isNew ? "POST" : "PUT", token: t, body: JSON.stringify(p) }),
   deletePromo: (t, id) => http(`/admin/promos/${id}`, { method: "DELETE", token: t }),
+  banners: (t) => http("/admin/banners", { token: t }),
+  saveBanner: (t, b, isNew) => http(isNew ? "/admin/banners" : `/admin/banners/${b.id}`, { method: isNew ? "POST" : "PUT", token: t, body: JSON.stringify(b) }),
+  deleteBanner: (t, id) => http(`/admin/banners/${id}`, { method: "DELETE", token: t }),
   mentors: (t) => http("/admin/mentors", { token: t }),
   saveMentor: (t, m, isNew) => http(isNew ? "/admin/mentors" : `/admin/mentors/${m.id}`, { method: isNew ? "POST" : "PUT", token: t, body: JSON.stringify(m) }),
   users: (t) => http("/admin/users", { token: t }),
@@ -146,6 +153,18 @@ const mockAdmin: AdminApi = {
     if (p && p.usedCount > 0) throw new ApiError("promo_in_use");
     write(MK.promos, read<PromoCode[]>(MK.promos, []).filter((x) => x.id !== id));
   },
+  async banners(t) { guard(t); return read<Banner[]>(K.banners, SAMPLE_BANNERS).sort((a, b) => a.sortOrder - b.sortOrder); },
+  async saveBanner(t, b, isNew) {
+    guard(t);
+    if (!b.title?.ar?.trim() && !b.title?.en?.trim()) throw new ApiError("missing_title");
+    if (b.linkUrl && !/^(https:\/\/\S+|\/\S*)$/.test(b.linkUrl)) throw new ApiError("invalid_link");
+    if (b.startsAt && b.endsAt && +new Date(b.endsAt) <= +new Date(b.startsAt)) throw new ApiError("invalid_endsAt");
+    const list = read<Banner[]>(K.banners, SAMPLE_BANNERS);
+    const full = { ...b, id: isNew ? uid("b") : b.id! } as Banner;
+    write(K.banners, isNew ? [...list, full] : list.map((x) => (x.id === full.id ? full : x)));
+    return full;
+  },
+  async deleteBanner(t, id) { guard(t); write(K.banners, read<Banner[]>(K.banners, SAMPLE_BANNERS).filter((x) => x.id !== id)); },
   async mentors(t) { guard(t); return getMentors(); },
   async saveMentor(t, m, isNew) {
     guard(t);

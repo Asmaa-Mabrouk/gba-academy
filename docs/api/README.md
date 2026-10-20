@@ -68,6 +68,14 @@ Base URL: `/api/v1`. JSON. Auth: `Authorization: Bearer <jwt>` (token from login
 | GET, POST | `/admin/promos` | List, create. `{code, percentOff 1-100, maxUses|null, expiresAt|null, active, note}`. 409 `code_exists` |
 | PUT, DELETE | `/admin/promos/{id}` | Code cannot change. `max_uses_below_used`; delete refused once used (`promo_in_use`), deactivate instead |
 
+## Announcement banners
+
+| Method | Path | Notes |
+| --- | --- | --- |
+| GET | `/banners` | Public. Only banners that are active and inside their dates, ordered by `sortOrder` |
+| GET, POST | `/admin/banners` | List all, create. `{title{ar,en}, subtitle, ctaLabel, linkUrl (https or /path), imageUrl, theme navy|gold|teal|violet, startsAt, endsAt, active, sortOrder}`. 400 `invalid_link`, `invalid_theme`, `missing_title` |
+| PUT, DELETE | `/admin/banners/{id}` | Update or delete |
+
 ## Files
 
 | Method | Path | Notes |

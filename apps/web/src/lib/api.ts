@@ -3,7 +3,7 @@
 // NEXT_PUBLIC_API_MODE=http  -> the Java API at NEXT_PUBLIC_API_URL (contract: docs/api/)
 import { COURSES, DEMO_ACCOUNTS, MENTORS, REVIEWS } from "./mock-data";
 import type {
-  AuthResult, Course, CourseContent, CourseFilters, Enrollment, Mentor, Order, OrderLine, PaymentMethod, PromoCode, PromoQuote,
+  AuthResult, Banner, Course, CourseContent, CourseFilters, Enrollment, Mentor, Order, OrderLine, PaymentMethod, PromoCode, PromoQuote,
   Quiz, QuizResult, RegisterInput, Review, UploadedFile, UploadKind, User,
 } from "./types";
 import { VAT_RATE } from "./types";
@@ -22,6 +22,7 @@ export interface CatalogApi {
   mentors(): Promise<Mentor[]>;
   mentor(slug: string): Promise<Mentor | null>;
   reviews(courseSlug: string): Promise<Review[]>;
+  banners(): Promise<Banner[]>;
 }
 
 export function minPrice(c: Course): number {
@@ -52,7 +53,17 @@ function applyFilters(list: Course[], f: CourseFilters = {}): Course[] {
   return r;
 }
 
+/** Sample announcements used until the admin creates their own (demo mode). */
+export const SAMPLE_BANNERS: Banner[] = [
+  { id: "b-gpmf", title: { ar: "المنتدى العالمي لإدارة المشاريع GPMF 2026", en: "Global Project Management Forum GPMF 2026" }, subtitle: { ar: "سجّل الآن واحجز مقعدك في أكبر تجمّع لقادة المشاريع", en: "Register now and reserve your seat at the biggest gathering of project leaders" }, ctaLabel: { ar: "زيارة موقع GPMF", en: "Visit the GPMF website" }, linkUrl: "https://gpmf.world", imageUrl: null, theme: "navy", startsAt: null, endsAt: null, active: true, sortOrder: 1 },
+  { id: "b-webinar", title: { ar: "ندوة مجانية: ابدأ مسارك في إدارة المشاريع", en: "Free webinar: start your project management path" }, subtitle: { ar: "جلسة مباشرة مجانية مع خبراء الأكاديمية", en: "A free live session with the academy experts" }, ctaLabel: { ar: "استعرض الدورات المجانية", en: "See free courses" }, linkUrl: "/courses", imageUrl: null, theme: "gold", startsAt: null, endsAt: null, active: true, sortOrder: 2 },
+];
+
 const mockCatalog: CatalogApi = {
+  banners: async () => {
+    const list = read<Banner[]>(K.banners, SAMPLE_BANNERS), now = Date.now();
+    return list.filter((b) => b.active && (!b.startsAt || +new Date(b.startsAt) <= now) && (!b.endsAt || +new Date(b.endsAt) > now)).sort((a, b) => a.sortOrder - b.sortOrder);
+  },
   courses: async (f) => applyFilters(COURSES, f),
   course: async (slug) => COURSES.find((c) => c.slug === slug) ?? null,
   mentors: async () => MENTORS,
@@ -125,6 +136,7 @@ export async function http<T>(path: string, init?: RequestInit & { token?: strin
 }
 
 const httpCatalog: CatalogApi = {
+  banners: () => http<Banner[]>("/banners").catch(() => []),
   courses: (f = {}) => {
     const p = new URLSearchParams();
     Object.entries(f).forEach(([k, v]) => v !== undefined && v !== "all" && v !== "" && p.set(k, String(v)));
@@ -156,7 +168,7 @@ export interface UserApi {
 }
 
 // --- mock implementation: everything lives in localStorage ---
-export const K = { users: "gba.users", enr: "gba.enrollments", orders: "gba.orders", reviews: "gba.reviews", promos: "gba.admin.promos", adminCourses: "gba.admin.courses" };
+export const K = { users: "gba.users", enr: "gba.enrollments", orders: "gba.orders", reviews: "gba.reviews", promos: "gba.admin.promos", banners: "gba.admin.banners", adminCourses: "gba.admin.courses" };
 export function read<T>(key: string, fallback: T): T {
   try { const v = localStorage.getItem(key); return v ? (JSON.parse(v) as T) : fallback; } catch { return fallback; }
 }

@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Avatar } from "@/components/Avatar";
+import { BannerSlider } from "@/components/BannerSlider";
 import { CourseCard } from "@/components/CourseCard";
 import { GpmfSpiral } from "@/components/GpmfSpiral";
 import { Signature } from "@/components/Signature";
@@ -35,6 +36,7 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
 
   return (
     <>
+      <BannerSlider locale={locale} t={t} />
       {/* HERO: luxury layout. Slogan, founder word, arch-framed portrait, glass nameplate. */}
       <section className="luxe-hero relative overflow-hidden">
         <div className="pointer-events-none absolute -end-48 top-1/2 -translate-y-1/2 opacity-[.16]" aria-hidden="true"><GpmfSpiral size={640} /></div>
@@ -105,7 +107,7 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
       {/* TRACKS */}
       <section className="container-x -mt-10 relative z-10 grid gap-5 md:grid-cols-3">
         {TRACKS.map((tr_, i) => (
-          <Link key={tr_.id} href={L(`/courses?audience=${tr_.id}`)} className={`rise d${i + 1} group relative overflow-hidden rounded-3xl bg-gradient-to-br p-7 shadow-xl transition hover:-translate-y-1 ${tr_.bg}`}>
+          <Link key={tr_.id} href={L(tr_.id === "kids" ? "/kids" : `/courses?audience=${tr_.id}`)} className={`rise d${i + 1} group relative overflow-hidden rounded-3xl bg-gradient-to-br p-7 shadow-xl transition hover:-translate-y-1 ${tr_.bg}`}>
             <span className="absolute -end-6 -top-6 text-[9rem] leading-none opacity-15 transition group-hover:rotate-12">{tr_.emoji}</span>
             <span className="chip bg-white/25">{t.audiences[tr_.id].age}</span>
             <h2 className="mt-4 text-3xl font-black">{t.audiences[tr_.id].name}</h2>

@@ -21,7 +21,7 @@ export function Header({ locale, t }: { locale: Locale; t: Dict }) {
   const L = (p: string) => `/${locale}${p}`;
   const links = [
     { href: L("/courses"), label: t.nav.courses },
-    { href: L("/courses?audience=kids"), label: t.nav.kids },
+    { href: L("/kids"), label: t.nav.kids },
     { href: L("/courses?audience=youth"), label: t.nav.youth },
     { href: L("/courses?audience=experts"), label: t.nav.experts },
     { href: L("/courses?mode=live"), label: t.nav.live },

@@ -14,7 +14,7 @@ Scope: database, API, web, delivery. Verdicts are **Done** (in the repo now), **
 | DB | CHECK constraints (order totals = subtotal + VAT, progress 0-100, seats never oversold, ratings 0-5, no negative prices) | Integrity does not depend on every code path being correct |
 | API | Hikari pool limits and 5 s connection timeout | Saturation fails fast |
 | API | Virtual threads, graceful shutdown, response compression, liveness/readiness probes | Safe deploys and scale-out behind a load balancer |
-| Web | `error.tsx`, `loading.tsx` | Failed renders show a retry, not a blank page |
+| Web | `error.tsx` | Failed renders show a retry, not a blank page |
 | Delivery | GitHub Actions CI (web, api, database) and Dependabot | Every change is built and tested; dependencies stay current |
 | Test | `scripts/db-check.sh` + `qa/db-scenarios.sql` | Applies V1..V5 to a fresh PostgreSQL and proves each rule rejects bad data |
 

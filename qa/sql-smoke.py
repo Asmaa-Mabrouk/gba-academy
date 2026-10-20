@@ -39,6 +39,7 @@ def main():
         ('promo redeem', "UPDATE promo_codes SET used_count = used_count + 1 WHERE id = :id AND (max_uses IS NULL OR used_count < max_uses)"),
         ('roles any', "SELECT count(*) FROM users WHERE id = :id AND roles && string_to_array(:r, ',')"),
         ('enrollment content', "SELECT modules::text AS modules, quizzes::text AS quizzes, materials::text AS materials FROM courses WHERE slug = :s"),
+        ('banner insert', "INSERT INTO banners(title, subtitle, cta_label, link_url, image_url, theme, starts_at, ends_at, active, sort_order) VALUES (:t::jsonb, :s::jsonb, :c::jsonb, :l, :i, :th, :st::timestamptz, :en::timestamptz, :a, :o)"),
         ('quiz guard', "SELECT count(*) FROM courses WHERE slug = :s AND jsonb_exists(quizzes, :l)"),
         ('cancel removed', "SELECT meeting_ref FROM live_sessions WHERE offering_id = :o AND meeting_provider = 'google_meet' AND meeting_ref IS NOT NULL AND id <> ALL(string_to_array(:ids, ','))"),
         ('delete removed', "DELETE FROM live_sessions WHERE offering_id = :o AND id <> ALL(string_to_array(:ids, ','))"),

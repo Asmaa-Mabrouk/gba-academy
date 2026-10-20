@@ -93,3 +93,9 @@ SELECT pg_temp.expect_fail($$UPDATE orders SET discount_halalas = -1 WHERE numbe
 INSERT INTO media_files(kind, original_name, content_type, size_bytes, storage_key, uploaded_by) SELECT 'image', 'a.png', 'image/png', 10, 'k1', uid FROM ctx;
 SELECT pg_temp.expect_fail($$INSERT INTO media_files(kind, original_name, content_type, size_bytes, storage_key, uploaded_by) SELECT 'audio', 'a.mp3', 'audio/mpeg', 10, 'k2', uid FROM ctx$$, 'unknown media kind');
 SELECT pg_temp.expect_fail($$INSERT INTO media_files(kind, original_name, content_type, size_bytes, storage_key, uploaded_by) SELECT 'image', 'b.png', 'image/png', 10, 'k1', uid FROM ctx$$, 'storage key is unique');
+
+-- V7 banners
+INSERT INTO banners(title, link_url, sort_order) VALUES ('{"ar":"a","en":"a"}', 'https://gpmf.world', 1);
+SELECT pg_temp.expect_fail($$INSERT INTO banners(title, theme) VALUES ('{"ar":"a","en":"a"}', 'pink')$$, 'unknown banner theme');
+SELECT pg_temp.expect_fail($$INSERT INTO banners(title, link_url) VALUES ('{"ar":"a","en":"a"}', 'javascript:alert(1)')$$, 'banner link must be https or a site path');
+SELECT pg_temp.expect_fail($$INSERT INTO banners(title, starts_at, ends_at) VALUES ('{"ar":"a","en":"a"}', now(), now() - interval '1 day')$$, 'banner ends before it starts');

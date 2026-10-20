@@ -21,3 +21,6 @@
 | D17 | Uploads go through the `FileStorage` port; files are type-checked by content and served with an access check | Paid video must not be a public URL; storage can move to S3 later |
 | D18 | Promo codes are a percentage of the VAT-inclusive total, one use per learner, validated and redeemed inside the order transaction | Simple for admins, no double use under load |
 | D19 | Public course JSON omits lesson videos and files; enrolled learners fetch them from `/me/enrollments/{slug}/content` | The catalogue is public and cached; paid content is not |
+| D20 | Home announcements are a database table (V7) shown by one public endpoint; links must be https or a site path (CHECK constraint) | The team changes ads without a deploy, and a banner can never carry a `javascript:` link |
+| D21 | The kids page (`/kids`) keeps hero avatar, XP, projects and cheers on the device only and uses nicknames and preset emoji | Child safety first: no personal data and no free chat until a moderated backend and guardian consent flow exist |
+| D22 | No route-level `loading.tsx` | It made unknown pages answer 200 instead of 404 |

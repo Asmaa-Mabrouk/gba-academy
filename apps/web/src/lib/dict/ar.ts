@@ -271,6 +271,7 @@ export const ar = {
     expires: "ينتهي الوصول",
     needLogin: "سجّل الدخول لعرض دوراتك",
   },
+  banner: { label: "إعلانات الأكاديمية", prev: "الإعلان السابق", next: "الإعلان التالي", goTo: "الانتقال إلى الإعلان", pause: "إيقاف التشغيل التلقائي", play: "تشغيل تلقائي" },
   learn: {
     lessonList: "الدروس",
     watch: "شاهد الدرس", videoMissing: "لم يُرفع فيديو لهذا الدرس بعد.", materials: "ملفات الدرس", courseMaterials: "ملفات الدورة", download: "تحميل", lessonAbout: "عن الدرس",
