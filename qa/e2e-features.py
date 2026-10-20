@@ -215,6 +215,7 @@ def approval(pg):
     pg.locator("label:has-text('Slug') input").fill("qa-mentor-course"); bi(pg, "Title", "دورة المرشد", "Mentor QA course")
     pg.locator("button:has-text('Submit for approval')").first.click(); pg.wait_for_timeout(600)
     check("M05", "an incomplete draft cannot be submitted (needs a lesson and an offering)", "Before submitting" in body(pg), body(pg)[:300])
+    check("M05b", "the failed submit still saved the draft (page moved to its edit URL)", "/mentor/courses/c-qa-mentor-course" in pg.url, pg.url); pg.wait_for_timeout(600)
     pg.locator("button:has-text('Add module')").click(); pg.locator("button:has-text('Add lesson')").click(); pg.wait_for_timeout(200)
     bi(pg, "Lesson title", "درس", "A lesson"); pg.locator("main button:has-text('Close')").first.click()
     pg.locator("button:has-text('Add offering')").click(); pg.locator("#offerings label:has-text('Price (SAR)') input").fill("99")

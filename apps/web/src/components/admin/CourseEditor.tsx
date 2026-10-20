@@ -52,7 +52,8 @@ export function CourseEditor({ id, restricted = false }: { id: string; restricte
 
   useEffect(() => {
     if (!loaded) return;
-    setC(loaded);
+    // Live and blended offerings need a capacity. Older data may lack it: default to the largest session size (or 25).
+    setC({ ...loaded, offerings: loaded.offerings.map((o) => (o.mode === "recorded" || o.capacity ? o : { ...o, capacity: Math.max(25, ...o.sessions.map((x) => x.seats || 0)), minLearners: o.minLearners ?? 10 })) });
     setOutAr(loaded.outcomes.map((o) => o.ar).join("\n"));
     setOutEn(loaded.outcomes.map((o) => o.en).join("\n"));
   }, [loaded]);
@@ -105,7 +106,9 @@ export function CourseEditor({ id, restricted = false }: { id: string; restricte
   const save = () => run(async () => { landed(await persist()); okMsg(setMsg, a.common.saved); });
   const submit = () => run(async () => {
     const saved = await persist();
-    const sent = await mentorApi.submitCourse(token, saved.id);
+    let sent: Course;
+    try { sent = await mentorApi.submitCourse(token, saved.id); }
+    catch (e) { landed(saved); notify.error(errorText(a, e)); return; } // keep what was saved: the next click must update it, not create it again
     okMsg(setMsg, t.submitted);
     landed(sent);
   });
