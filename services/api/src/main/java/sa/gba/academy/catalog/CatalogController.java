@@ -13,7 +13,7 @@ import sa.gba.academy.common.Json;
 @RestController
 @RequestMapping("/api/v1")
 public class CatalogController {
-    static final String COURSE_JSON = """
+    public static final String COURSE_JSON = """
             json_build_object(
               'id',c.id,'slug',c.slug,'audience',c.audience,'level',c.level,'topic',c.topic,
               'title',c.title,'subtitle',c.subtitle,'description',c.description,'outcomes',c.outcomes,'modules',c.modules,
