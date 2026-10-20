@@ -12,6 +12,7 @@ import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.web.bind.annotation.*;
 import sa.gba.academy.auth.AuthInterceptor;
 import sa.gba.academy.common.ApiException;
+import sa.gba.academy.admin.RatingService;
 import sa.gba.academy.common.Json;
 
 /** My courses, lesson progress, certificates and reviews (only enrolled learners may review). */
@@ -31,8 +32,12 @@ public class LearningController {
             FROM enrollments e JOIN offerings o ON o.id = e.offering_id JOIN courses c ON c.id = o.course_id""";
 
     private final JdbcClient db;
+    private final RatingService ratings;
 
-    public LearningController(JdbcClient db) { this.db = db; }
+    public LearningController(JdbcClient db, RatingService ratings) {
+        this.db = db;
+        this.ratings = ratings;
+    }
 
     @GetMapping("/me/enrollments")
     public ResponseEntity<String> mine(HttpServletRequest req) {
@@ -77,11 +82,7 @@ public class LearningController {
                 INSERT INTO reviews(id, course_id, user_id, author, rating, comment)
                 SELECT :id, c.id, :u, u.full_name, :r, :cm::jsonb FROM courses c, users u WHERE c.slug = :s AND u.id = :u""")
                 .param("id", id).param("u", uid).param("r", body.rating()).param("cm", comment).param("s", slug).update();
-        // Keep the denormalised rating on the course and its mentor in sync.
-        db.sql("""
-                UPDATE courses c SET rating = x.avg, review_count = x.cnt
-                FROM (SELECT course_id, round(avg(rating)::numeric, 2) AS avg, count(*) AS cnt FROM reviews GROUP BY course_id) x
-                WHERE x.course_id = c.id AND c.slug = :s""").param("s", slug).update();
+        ratings.added(db.sql("SELECT id FROM courses WHERE slug = :s").param("s", slug).query(String.class).single(), body.rating());
         return Json.of(db.sql("""
                 SELECT json_build_object('id',r.id,'courseSlug',c.slug,'author',r.author,'rating',r.rating,'comment',r.comment,
                   'createdAt',r.created_at)::text FROM reviews r JOIN courses c ON c.id = r.course_id WHERE r.id = :id""")

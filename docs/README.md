@@ -9,6 +9,7 @@
 | API reference (every endpoint) | [api/README.md](api/README.md) |
 | User flows (register, buy, learn, review, live) | [flows/README.md](flows/README.md) |
 | Integrations to finish (payment, ZATCA, video) | [integrations/README.md](integrations/README.md) |
+| Roles, one login, admin portal | [admin.md](admin.md) |
 | Run, deploy, troubleshoot | [operations/runbook.md](operations/runbook.md) |
 | Design system and content guide | [design.md](design.md) |
 | How to contribute | [contributing.md](contributing.md) |

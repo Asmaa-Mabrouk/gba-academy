@@ -1,7 +1,7 @@
 // Single entry point to the backend. Pages never call fetch directly.
 // NEXT_PUBLIC_API_MODE=mock  -> built-in sample data + localStorage (no backend needed)
 // NEXT_PUBLIC_API_MODE=http  -> the Java API at NEXT_PUBLIC_API_URL (contract: docs/api/)
-import { COURSES, DEMO_USER, MENTORS, REVIEWS } from "./mock-data";
+import { COURSES, DEMO_ACCOUNTS, MENTORS, REVIEWS } from "./mock-data";
 import type {
   AuthResult, Course, CourseFilters, Enrollment, Mentor, Order, OrderLine, PaymentMethod,
   RegisterInput, Review, User,
@@ -60,7 +60,7 @@ const mockCatalog: CatalogApi = {
   reviews: async (slug) => REVIEWS.filter((r) => r.courseSlug === slug),
 };
 
-async function http<T>(path: string, init?: RequestInit & { token?: string | null }): Promise<T> {
+export async function http<T>(path: string, init?: RequestInit & { token?: string | null }): Promise<T> {
   const headers: Record<string, string> = { "Content-Type": "application/json" };
   if (init?.token) headers.Authorization = `Bearer ${init.token}`;
   const res = await fetch(`${BASE}${path}`, { ...init, headers: { ...headers, ...(init?.headers as object) } });
@@ -99,24 +99,28 @@ export interface UserApi {
 }
 
 // --- mock implementation: everything lives in localStorage ---
-const K = { users: "gba.users", enr: "gba.enrollments", orders: "gba.orders", reviews: "gba.reviews" };
-function read<T>(key: string, fallback: T): T {
+export const K = { users: "gba.users", enr: "gba.enrollments", orders: "gba.orders", reviews: "gba.reviews" };
+export function read<T>(key: string, fallback: T): T {
   try { const v = localStorage.getItem(key); return v ? (JSON.parse(v) as T) : fallback; } catch { return fallback; }
 }
-function write(key: string, v: unknown) { try { localStorage.setItem(key, JSON.stringify(v)); } catch { /* storage unavailable */ } }
+export function write(key: string, v: unknown) { try { localStorage.setItem(key, JSON.stringify(v)); } catch { /* storage unavailable */ } }
 
-interface StoredUser extends User { password: string }
-function seedUsers(): StoredUser[] {
+export interface StoredUser extends User { password: string }
+export function seedUsers(): StoredUser[] {
   const u = read<StoredUser[]>(K.users, []);
-  if (!u.find((x) => x.email === DEMO_USER.email)) {
-    u.push({ id: "u-demo", fullName: DEMO_USER.fullName, email: DEMO_USER.email, locale: "ar", roles: ["learner"], registeringFor: "self", password: DEMO_USER.password });
-    write(K.users, u);
+  let changed = false;
+  for (const d of DEMO_ACCOUNTS) {
+    if (!u.find((x) => x.email === d.email)) {
+      u.push({ id: `u-${d.key}`, fullName: d.fullName, email: d.email, locale: "ar", roles: d.roles, registeringFor: "self", password: d.password, createdAt: new Date().toISOString() } as StoredUser);
+      changed = true;
+    }
   }
+  if (changed) write(K.users, u);
   return u;
 }
 const strip = ({ password: _p, ...u }: StoredUser): User => u;
 const tokenFor = (id: string) => `mock.${id}`;
-const idOf = (t: string) => t.replace("mock.", "");
+export const idOf = (t: string) => t.replace("mock.", "");
 
 const mockUser: UserApi = {
   async register(i) {
@@ -141,13 +145,14 @@ const mockUser: UserApi = {
     await new Promise((r) => setTimeout(r, 1400)); // fake gateway latency
     const total = lines.reduce((s, l) => s + l.priceHalalas, 0);
     const net = Math.round(total / (1 + VAT_RATE));
-    const n = read<Order[]>(K.orders, []).length + 1;
+    const n = read<unknown[]>(K.orders, []).length + 1;
     const order: Order = {
       id: `o-${Date.now()}`, number: `GBA-${new Date().getFullYear()}-${String(n).padStart(5, "0")}`, status: "paid",
       lines, subtotalHalalas: net, vatHalalas: total - net, totalHalalas: total, paymentMethod: method,
       createdAt: new Date().toISOString(), invoiceNumber: `INV-${String(n).padStart(6, "0")}`,
     };
-    write(K.orders, [...read<Order[]>(K.orders, []), order]);
+    const buyer = seedUsers().find((x) => x.id === uid);
+    write(K.orders, [...read<unknown[]>(K.orders, []), { ...order, userName: buyer?.fullName ?? "", userEmail: buyer?.email ?? "" }]);
     const all = read<Record<string, Enrollment[]>>(K.enr, {});
     const mine = all[uid] ?? [];
     for (const l of lines) {

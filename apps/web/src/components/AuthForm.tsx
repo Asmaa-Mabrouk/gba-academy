@@ -5,7 +5,8 @@ import { useState, type FormEvent } from "react";
 import { ApiError, isMock } from "@/lib/api";
 import type { Dict } from "@/lib/i18n";
 import { useAuth } from "@/lib/store";
-import { DEMO_USER } from "@/lib/mock-data";
+import { DEMO_ACCOUNTS } from "@/lib/mock-data";
+import { landingFor } from "@/lib/portals";
 import type { Locale } from "@/lib/types";
 import { GpmfSpiral } from "./GpmfSpiral";
 
@@ -26,9 +27,10 @@ export function AuthForm({ mode, locale, t }: { mode: "login" | "register"; loca
     if (isReg && !f.terms) return setErr(t.auth.accept);
     setBusy(true);
     try {
-      if (isReg) await register({ fullName: f.fullName, email: f.email, mobile: f.mobile, password: f.password, locale, registeringFor: f.forChild ? "child" : "self", marketingConsent: f.marketing });
-      else await login(f.email, f.password);
-      router.push(next && next.startsWith("/") ? next : `/${locale}/my-courses`);
+      const user = isReg
+        ? await register({ fullName: f.fullName, email: f.email, mobile: f.mobile, password: f.password, locale, registeringFor: f.forChild ? "child" : "self", marketingConsent: f.marketing })
+        : await login(f.email, f.password);
+      router.push(next && next.startsWith("/") ? next : landingFor(user, locale));
     } catch (x) {
       const code = x instanceof ApiError ? x.code : "";
       setErr(code === "email_exists" ? t.auth.exists : code === "weak_password" ? t.auth.weak : code === "invalid_credentials" ? t.auth.invalid : t.common.error);
@@ -87,9 +89,14 @@ export function AuthForm({ mode, locale, t }: { mode: "login" | "register"; loca
             <Link className="font-bold text-gold-deep hover:underline" href={`/${locale}/${isReg ? "login" : "register"}`}>{isReg ? t.nav.login : t.nav.register}</Link>
           </p>
           {!isReg && isMock && (
-            <button type="button" className="w-full rounded-xl border border-dashed border-gold p-3 text-xs text-mute hover:bg-sand" onClick={() => setF((p) => ({ ...p, email: DEMO_USER.email, password: DEMO_USER.password }))}>
-              {t.auth.demoHint}: <b dir="ltr">{DEMO_USER.email}</b> / <b dir="ltr">{DEMO_USER.password}</b>
-            </button>
+            <div className="space-y-2 rounded-xl border border-dashed border-gold p-3 text-xs text-mute">
+              <p className="font-bold">{t.auth.demoHint}</p>
+              {DEMO_ACCOUNTS.map((d) => (
+                <button type="button" key={d.key} className="block w-full rounded-lg p-2 text-start hover:bg-sand" onClick={() => setF((p) => ({ ...p, email: d.email, password: d.password }))}>
+                  <b dir="ltr">{d.email}</b> / <b dir="ltr">{d.password}</b> <span className="text-gold-deep">({d.roles.filter((r) => r !== "learner").join(", ") || "learner"})</span>
+                </button>
+              ))}
+            </div>
           )}
         </form>
       </div>

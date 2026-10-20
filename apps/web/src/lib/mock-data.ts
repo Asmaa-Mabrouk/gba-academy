@@ -761,3 +761,10 @@ export const REVIEWS: Review[] = [
 export const TESTIMONIALS = REVIEWS.filter((r) => r.rating === 5).slice(0, 3);
 
 export const DEMO_USER = { email: "learner@demo.sa", password: "Demo@1234", fullName: "متعلم تجريبي" };
+
+/** Demo logins for mock mode. One login screen, the roles decide which interfaces open. */
+export const DEMO_ACCOUNTS = [
+  { key: "demo", email: "learner@demo.sa", password: "Demo@1234", fullName: "متعلم تجريبي", roles: ["learner"] as ("learner" | "mentor" | "admin")[] },
+  { key: "mentor", email: "mentor@demo.sa", password: "Mentor@1234", fullName: "د. ليلى الحربي", roles: ["learner", "mentor"] as ("learner" | "mentor" | "admin")[] },
+  { key: "admin", email: "admin@demo.sa", password: "Admin@1234", fullName: "مدير النظام", roles: ["learner", "admin"] as ("learner" | "mentor" | "admin")[] },
+];

@@ -14,6 +14,8 @@ services:
       DB_PASSWORD: gba
       JWT_SECRET: local-dev-secret-local-dev-secret-0123456789
       CORS_ORIGINS: http://localhost:3000
+      ADMIN_EMAIL: admin@gba.local        # dev only: first admin. Change for any real deployment
+      ADMIN_PASSWORD: Admin@12345
     depends_on: { db: { condition: service_healthy } }
     ports: ["8080:8080"]
   web:

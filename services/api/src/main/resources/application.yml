@@ -10,6 +10,8 @@ management.endpoints.web.exposure.include: health,info
 academy:
   jwt-secret: ${JWT_SECRET:change-me-change-me-change-me-change-me-0123}   # at least 32 chars; set a real secret in production
   jwt-ttl-minutes: 1440
+  admin-email: ${ADMIN_EMAIL:}          # first admin account, created at start-up when set
+  admin-password: ${ADMIN_PASSWORD:}
   cors-origins: ${CORS_ORIGINS:http://localhost:3000}
   integrations:            # fake | real. Real adapters are written by the integration developer (docs/integrations/)
     payment: fake

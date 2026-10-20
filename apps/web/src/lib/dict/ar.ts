@@ -8,6 +8,8 @@ export const ar = {
     kids: "الأطفال",
     youth: "الشباب",
     experts: "الخبراء",
+    admin: "لوحة الإدارة",
+    mentorPortal: "بوابة المرشد",
     myCourses: "دوراتي",
     login: "تسجيل الدخول",
     register: "إنشاء حساب",

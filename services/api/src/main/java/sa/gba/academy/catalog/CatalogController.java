@@ -19,7 +19,7 @@ public class CatalogController {
               'title',c.title,'subtitle',c.subtitle,'description',c.description,'outcomes',c.outcomes,'modules',c.modules,
               'mentorId',c.mentor_id,'rating',c.rating,'reviewCount',c.review_count,'learners',c.learners,'hours',c.hours,
               'languages',c.languages,'featured',c.featured,'isNew',c.is_new,'bestseller',c.bestseller,
-              'ageRange',c.age_range,'certificate',c.certificate,'cpdPoints',c.cpd_points,
+              'ageRange',c.age_range,'certificate',c.certificate,'cpdPoints',c.cpd_points,'published',c.published,
               'offerings',(SELECT coalesce(json_agg(json_build_object(
                   'id',o.id,'mode',o.mode,'priceHalalas',o.price_halalas,'compareAtHalalas',o.compare_at_halalas,
                   'accessDays',o.access_days,'cohortLabel',o.cohort_label,
@@ -50,7 +50,7 @@ public class CatalogController {
             case "priceDesc" -> minPrice + " DESC";
             default -> "c.learners DESC";
         };
-        String sql = "SELECT " + COURSE_JSON + " FROM courses c WHERE true"
+        String sql = "SELECT " + COURSE_JSON + " FROM courses c WHERE c.published"
                 + " AND (:aud::text IS NULL OR c.audience = :aud)"
                 + " AND (:lvl::text IS NULL OR c.level = :lvl)"
                 + " AND (:top::text IS NULL OR c.topic = :top)"
@@ -65,7 +65,7 @@ public class CatalogController {
 
     @GetMapping("/courses/{slug}")
     public ResponseEntity<String> course(@PathVariable String slug) {
-        List<String> r = db.sql("SELECT " + COURSE_JSON + " FROM courses c WHERE c.slug = :s").param("s", slug).query(String.class).list();
+        List<String> r = db.sql("SELECT " + COURSE_JSON + " FROM courses c WHERE c.slug = :s AND c.published").param("s", slug).query(String.class).list();
         if (r.isEmpty()) throw new ApiException(HttpStatus.NOT_FOUND, "not_found");
         return Json.of(r.get(0));
     }

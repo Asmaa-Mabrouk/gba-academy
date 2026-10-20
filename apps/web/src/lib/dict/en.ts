@@ -9,6 +9,8 @@ export const en: typeof ar = {
     kids: "Kids",
     youth: "Youth",
     experts: "Experts",
+    admin: "Admin portal",
+    mentorPortal: "Mentor portal",
     myCourses: "My courses",
     login: "Log in",
     register: "Create account",

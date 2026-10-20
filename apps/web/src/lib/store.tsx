@@ -7,8 +7,8 @@ interface AuthCtx {
   user: User | null;
   token: string | null;
   ready: boolean;
-  login(email: string, password: string): Promise<void>;
-  register(input: RegisterInput): Promise<void>;
+  login(email: string, password: string): Promise<User>;
+  register(input: RegisterInput): Promise<User>;
   logout(): void;
 }
 interface CartCtx {
@@ -49,8 +49,8 @@ export function Providers({ children }: { locale: Locale; children: ReactNode })
 
   const auth = useMemo<AuthCtx>(() => ({
     user, token, ready,
-    login: async (e, p) => setSession(await userApi.login(e, p)),
-    register: async (i) => setSession(await userApi.register(i)),
+    login: async (e, p) => { const r = await userApi.login(e, p); setSession(r); return r.user; },
+    register: async (i) => { const r = await userApi.register(i); setSession(r); return r.user; },
     logout: () => { setUser(null); setToken(null); try { localStorage.removeItem(TOKEN_KEY); } catch { /* ignore */ } },
   }), [user, token, ready, setSession]);
 

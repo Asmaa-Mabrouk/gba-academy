@@ -6,6 +6,7 @@ export type Bilingual = { ar: string; en: string };
 
 export type Audience = "kids" | "youth" | "experts";
 export type Mode = "recorded" | "live" | "blended";
+export type Role = "learner" | "mentor" | "admin";
 export type Level = "beginner" | "intermediate" | "advanced";
 
 export interface Mentor {
@@ -81,7 +82,8 @@ export interface Course {
   bestseller: boolean;
   ageRange?: string; // kids and youth tracks
   certificate: boolean;
-  cpdPoints?: number;
+  cpdPoints?: number | null;
+  published?: boolean; // false = hidden from learners (admin only)
 }
 
 export interface Review {
@@ -100,7 +102,7 @@ export interface User {
   email: string;
   mobile?: string;
   locale: Locale;
-  roles: ("learner" | "mentor" | "admin")[];
+  roles: Role[];
   registeringFor: "self" | "child";
 }
 
@@ -166,3 +168,18 @@ export interface CourseFilters {
 
 // VAT is included in every displayed price. 15% VAT means price = net * 1.15.
 export const VAT_RATE = 0.15;
+
+// ---- admin portal ----
+export interface AdminStats {
+  users: number; courses: number; publishedCourses: number; mentors: number; enrollments: number; orders: number;
+  revenueHalalas: number; revenue30dHalalas: number; upcomingSessions: number;
+  topCourses: { slug: string; title: Bilingual; learners: number }[];
+}
+export interface AdminMentor extends Mentor { userId?: string | null; userEmail?: string | null }
+export interface AdminUser { id: string; fullName: string; email: string; mobile?: string; roles: Role[]; registeringFor: "self" | "child"; createdAt: string; enrollments: number }
+export interface AdminOrder {
+  id: string; number: string; status: Order["status"]; totalHalalas: number; vatHalalas: number; paymentMethod: PaymentMethod;
+  invoiceNumber?: string; createdAt: string; userName: string; userEmail: string;
+  lines: { courseSlug: string; courseTitle: Bilingual; mode: Mode; priceHalalas: number }[];
+}
+export interface AdminReview { id: string; courseSlug: string; courseTitle: Bilingual; author: string; rating: number; comment: Bilingual; mentorReply?: Bilingual | null; createdAt: string }

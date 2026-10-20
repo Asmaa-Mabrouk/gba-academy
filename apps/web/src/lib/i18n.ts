@@ -34,6 +34,11 @@ export function money(halalas: number, locale: Locale): string {
   return locale === "ar" ? `${n} ر.س` : `SAR ${n}`;
 }
 
+/** Like money() but 0 is shown as an amount, not "Free" (for admin totals). */
+export function moneyPlain(halalas: number, locale: Locale): string {
+  return halalas === 0 ? (locale === "ar" ? "٠ ر.س" : "SAR 0") : money(halalas, locale);
+}
+
 export function num(value: number, locale: Locale): string {
   return new Intl.NumberFormat(locale === "ar" ? "ar-SA" : "en-US").format(value);
 }

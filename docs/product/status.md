@@ -3,6 +3,7 @@
 ## Done
 - Web: home with three audience tracks, catalogue with filters, course page with offerings, mentors and reviews, login/register with the animated GPMF flower, cart, checkout (demo payment), my courses, learning page, Arabic and English, RTL.
 - API: schema, sample data, auth, catalogue, orders, enrollments, progress, reviews, fake integrations, VAT unit test.
+- Admin portal (web + API): dashboard, courses with offerings and live sessions, mentors, user roles, orders, review moderation. One login with role-based interfaces (see docs/admin.md).
 - Docs, Docker setup.
 
 ## Faked or placeholder
@@ -11,7 +12,7 @@
 - Course covers are generated; the Arabic academy name is a placeholder; logo is the supplied PNG (SVG wanted).
 
 ## Not built yet
-Password reset and email verification, admin and mentor back-office, certificate verification page and PDF, guardian-to-child profiles, refunds, coupons, notifications for live sessions, analytics, accessibility audit, automated API integration tests.
+Password reset and email verification, mentor portal (planned next, same login), certificate verification page and PDF, guardian-to-child profiles, refunds, coupons, notifications for live sessions, analytics, accessibility audit, automated API integration tests.
 
 ## Verification notes
 - Web: type-checked and production-built; pages load in a browser in both languages.

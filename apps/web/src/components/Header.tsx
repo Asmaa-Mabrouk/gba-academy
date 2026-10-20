@@ -4,6 +4,7 @@ import { usePathname } from "next/navigation";
 import { useState } from "react";
 import type { Dict } from "@/lib/i18n";
 import type { Locale } from "@/lib/types";
+import { portalsFor } from "@/lib/portals";
 import { useAuth, useCart } from "@/lib/store";
 
 export function Header({ locale, t }: { locale: Locale; t: Dict }) {
@@ -51,7 +52,10 @@ export function Header({ locale, t }: { locale: Locale; t: Dict }) {
           )}
           {ready && user && (
             <>
-              <Link href={L("/my-courses")} className="hidden px-3 py-2 text-sm font-medium hover:text-gold-light sm:block">{t.nav.myCourses}</Link>
+              {portalsFor(user, locale).map((p) => (
+                <Link key={p.role} href={p.href} className="hidden whitespace-nowrap rounded-full border border-gold/50 px-3 py-1.5 text-sm font-bold text-gold-light hover:bg-white/10 sm:block">{p.role === "admin" ? t.nav.admin : t.nav.mentorPortal}</Link>
+              ))}
+              <Link href={L("/my-courses")} className="hidden whitespace-nowrap px-3 py-2 text-sm font-medium hover:text-gold-light sm:block">{t.nav.myCourses}</Link>
               <button onClick={logout} className="btn btn-ghost !px-4 !py-2 text-sm">{t.nav.logout}</button>
             </>
           )}
@@ -63,6 +67,7 @@ export function Header({ locale, t }: { locale: Locale; t: Dict }) {
       {open && (
         <nav className="container-x grid gap-1 border-t border-white/10 pb-4 pt-2 lg:hidden" aria-label="Mobile">
           {links.map((l) => <Link key={l.href} href={l.href} onClick={() => setOpen(false)} className="rounded-xl px-3 py-3 font-medium hover:bg-white/10">{l.label}</Link>)}
+          {user && portalsFor(user, locale).map((p) => <Link key={p.role} href={p.href} onClick={() => setOpen(false)} className="rounded-xl px-3 py-3 font-bold text-gold-light hover:bg-white/10">{p.role === "admin" ? t.nav.admin : t.nav.mentorPortal}</Link>)}
           {user && <Link href={L("/my-courses")} onClick={() => setOpen(false)} className="rounded-xl px-3 py-3 font-medium hover:bg-white/10">{t.nav.myCourses}</Link>}
         </nav>
       )}

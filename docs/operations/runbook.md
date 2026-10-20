@@ -9,6 +9,7 @@
 | `DB_URL`, `DB_USER`, `DB_PASSWORD` | api | PostgreSQL |
 | `JWT_SECRET` | api | 32+ random characters. Required in production |
 | `CORS_ORIGINS` | api | Comma-separated web origins |
+| `ADMIN_EMAIL`, `ADMIN_PASSWORD` | api | Creates the first admin at start-up (or grants admin to an existing account with that email). Remove the password variable afterwards |
 
 ## Run locally
 See the root README. Reset the database: drop and recreate `gba`; Flyway rebuilds schema and sample data on start.

@@ -23,10 +23,27 @@ Base URL: `/api/v1`. JSON. Auth: `Authorization: Bearer <jwt>` (token from login
 | POST | `/me/enrollments/{slug}/lessons/{lessonId}/complete` | Marks lesson done, recomputes progress, issues certificate code at 100%. 403 `not_enrolled` |
 | POST | `/courses/{slug}/reviews` | `{rating 1-5, comment}`. Only enrolled learners (403 `not_enrolled`) |
 
+## Admin (role `admin`, 401 if not signed in, 403 `forbidden` otherwise)
+
+| Method | Path | Notes |
+| --- | --- | --- |
+| GET | `/admin/stats` | Dashboard numbers: users, courses, mentors, enrollments, paid orders, revenue, upcoming sessions, top courses |
+| GET | `/admin/courses`, `/admin/courses/{id}` | All courses including unpublished (`published:false`) |
+| POST | `/admin/courses` | Create. Body = `Course` shape with `offerings[].sessions[]`. 409 `slug_exists`, 400 `invalid_slug`/`missing_*`/`unknown_mentor`/`invalid_price`/`invalid_seats` |
+| PUT | `/admin/courses/{id}` | Replace course, offerings and sessions in one call. Ids are kept (sessions keep `seats_taken`); dropped sessions are deleted; an offering that has orders or enrollments cannot be deleted (409 `offering_in_use`) |
+| PUT | `/admin/courses/{id}/published` | `{published:boolean}` hides or shows the course for learners |
+| GET/POST/PUT | `/admin/mentors`, `/admin/mentors/{id}` | Mentor profile. `userEmail` links the profile to a login account and gives that account the `mentor` role |
+| GET | `/admin/users` | Latest 500 users with roles |
+| PUT | `/admin/users/{id}/roles` | `{roles:["learner","mentor","admin"]}`. `learner` is always kept; you cannot remove your own admin role |
+| GET | `/admin/orders` | Latest 200 orders with buyer and lines |
+| GET | `/admin/reviews` | All reviews |
+| DELETE | `/admin/reviews/{id}` | Removes the review and adjusts course and mentor rating |
+| PUT | `/admin/reviews/{id}/reply` | `{ar,en}` to set the mentor reply, `{}` to clear |
+
 ## Health
 
 `GET /actuator/health`.
 
 ## Not built yet (planned)
 
-Password reset, email verification, mentor/admin back-office endpoints, refunds, certificate verification page (`/certificates/{code}`), protected video playback URL (`VideoHosting`) and live join link (`LiveVideo`) endpoints, guardian-to-child profiles.
+Password reset, email verification, mentor portal endpoints (own courses, own sessions, own reviews), refunds, course deletion, certificate verification page (`/certificates/{code}`), protected video playback URL (`VideoHosting`) and live join link (`LiveVideo`) endpoints, guardian-to-child profiles.
