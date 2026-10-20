@@ -83,7 +83,8 @@ export function CourseEditor({ id, restricted = false }: { id: string; restricte
   };
   /** Check what the server will also check, so the person sees the problem next to the form before anything is sent. */
   const problem = (): string | null => {
-    const code = isNew && !c.slug.trim() ? "missing_slug" : !c.title.ar.trim() && !c.title.en.trim() ? "missing_title" : !restricted && !c.mentorId ? "missing_mentorId" : null;
+    const badCap = c.offerings.some((o) => o.mode !== "recorded" && (!o.capacity || o.capacity < 1 || (o.minLearners != null && o.minLearners > o.capacity)));
+    const code = badCap ? "invalid_capacity" : isNew && !c.slug.trim() ? "missing_slug" : !c.title.ar.trim() && !c.title.en.trim() ? "missing_title" : !restricted && !c.mentorId ? "missing_mentorId" : null;
     return code ? (a.common.errors as Record<string, string>)[code] : null;
   };
   /** Save and return the stored course. The caller decides what to do next. */
@@ -146,7 +147,7 @@ export function CourseEditor({ id, restricted = false }: { id: string; restricte
         </div>
       )}
       {restricted && isNew && <p className="mb-4 rounded-2xl border border-gold/40 bg-gold/10 p-3 text-sm">{a.mp.draftNote}</p>}
-      {locked && <p className="mb-4 rounded-2xl border border-gold/40 bg-gold/10 p-3 text-sm">{a.mp.restricted}</p>}
+      {locked && status === "approved" && <p className="mb-4 rounded-2xl border border-gold/40 bg-gold/10 p-3 text-sm">{a.mp.restricted}</p>}
       {status === "rejected" && c.reviewNote && (
         <div role="alert" className="mb-4 rounded-2xl border border-red-200 bg-red-50 p-4 text-sm text-red-800"><b>{t.reviewNote}:</b> {c.reviewNote}</div>
       )}

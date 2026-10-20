@@ -219,7 +219,7 @@ def approval(pg):
     bi(pg, "Lesson title", "درس", "A lesson"); pg.locator("main button:has-text('Close')").first.click()
     pg.locator("button:has-text('Add offering')").click(); pg.locator("#offerings label:has-text('Price (SAR)') input").fill("99")
     pg.locator("button:has-text('Submit for approval')").first.click(); pg.wait_for_timeout(900)
-    check("M06", "submit succeeds and the course is Waiting for approval", "Waiting for approval" in body(pg), body(pg)[:300])
+    check("M06", "submit succeeds and the course is Waiting for approval", "Waiting for approval" in body(pg), pg.locator("[role=alert]").all_inner_texts())
     check("M07", "a pending course is read-only (fields disabled) with a Withdraw button", pg.locator("fieldset:disabled").count() >= 1 and pg.locator("button:has-text('Withdraw from review')").count() >= 1)
     url = pg.url
     pg.locator("button:has-text('Withdraw from review')").first.click(); pg.wait_for_timeout(700)
@@ -275,7 +275,7 @@ def player(pg):
     check("L03", "submitting with unanswered questions asks to answer all", "Answer every question" in body(pg))
     pg.locator("label:has-text('Wrong') input").check(); pg.locator("button:has-text('Submit answers')").click(); pg.wait_for_timeout(500)
     check("L04", "a wrong answer fails with the score and a Try again button", "Try again" in body(pg) and "need" in body(pg))
-    pg.locator("label:has-text('Right') input").check(); pg.locator("button:has-text('Try again')").click(); pg.wait_for_timeout(300)
+    pg.locator("label:has-text('Right') input").check(); pg.wait_for_timeout(200)
     pg.locator("button:has-text('Submit answers')").click(); pg.wait_for_timeout(600)
     check("L05", "the right answer passes and the lesson is completed", "You passed" in body(pg) and pg.locator("text=✓").count() >= 1)
     check("L06", "lesson list sidebar and progress are visible", pg.locator("aside").count() >= 1)
@@ -318,7 +318,7 @@ def kids(b):
     check("K10", "kids courses are listed from the catalogue", pg.locator("main a.card").count() >= 1)
     pg.set_viewport_size({"width": 390, "height": 844}); goto(pg, "/ar/kids", 700)
     check("K11", "Arabic kids page is RTL, no horizontal overflow at 390px", pg.evaluate("document.documentElement.dir") == "rtl" and not pg.evaluate("document.documentElement.scrollWidth > document.documentElement.clientWidth + 1"))
-    goto(pg, "/en", 600); pg.locator("header a:has-text('Kids')").first.click(); pg.wait_for_timeout(600)
+    pg.set_viewport_size({"width": 1360, "height": 900}); goto(pg, "/en", 600); pg.locator("header a:has-text('Kids')").first.click(); pg.wait_for_timeout(600)
     check("K12", "the Kids menu item opens /kids", pg.url.endswith("/en/kids"), pg.url)
     ctx.close()
 
