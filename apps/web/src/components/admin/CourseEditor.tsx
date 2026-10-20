@@ -2,6 +2,7 @@
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { adminApi } from "@/lib/admin-api";
+import { mentorApi } from "@/lib/mentor-api";
 import type { Audience, Bilingual, Course, CourseModule, Lesson, LessonKind, Level, LiveSession, Mode, Offering } from "@/lib/types";
 import { Bi } from "./Bi";
 import { useAdmin } from "./AdminShell";
@@ -17,12 +18,14 @@ const blank = (): Course => ({
 const toInput = (iso: string) => new Date(+new Date(iso) + 3 * 3600e3).toISOString().slice(0, 16);
 const fromInput = (v: string) => new Date(`${v}:00+03:00`).toISOString();
 
-export function CourseEditor({ id }: { id: string }) {
+/** `restricted` = the mentor portal: content and live sessions only. Prices, slug, audience, flags and offerings are read-only (and ignored by the API). */
+export function CourseEditor({ id, restricted = false }: { id: string; restricted?: boolean }) {
   const { locale, a, token } = useAdmin();
   const router = useRouter();
   const isNew = id === "new";
-  const { data: loaded } = useLoad(() => (isNew ? Promise.resolve(blank()) : adminApi.course(token, id)), [id, token]);
-  const { data: mentors } = useLoad(() => adminApi.mentors(token), [token]);
+  const { data: loaded } = useLoad(() => (isNew ? Promise.resolve(blank()) : restricted ? mentorApi.course(token, id) : adminApi.course(token, id)), [id, token]);
+  const { data: mentors } = useLoad(() => (restricted ? Promise.resolve([]) : adminApi.mentors(token)), [token]);
+  const base = restricted ? `/${locale}/mentor/courses` : `/${locale}/admin/courses`;
   const [c, setC] = useState<Course | null>(null);
   const [outAr, setOutAr] = useState("");
   const [outEn, setOutEn] = useState("");
@@ -51,9 +54,9 @@ export function CourseEditor({ id }: { id: string }) {
     const en = outEn.split("\n").map((s) => s.trim()).filter(Boolean);
     const outcomes = Array.from({ length: Math.max(ar.length, en.length) }, (_, i) => ({ ar: ar[i] ?? en[i] ?? "", en: en[i] ?? ar[i] ?? "" }));
     try {
-      const saved = await adminApi.saveCourse(token, { ...c, outcomes }, isNew);
+      const saved = restricted ? await mentorApi.saveCourse(token, { ...c, outcomes }) : await adminApi.saveCourse(token, { ...c, outcomes }, isNew);
       setMsg({ ok: true, text: a.common.saved });
-      if (isNew) router.replace(`/${locale}/admin/courses/${saved.id}`);
+      if (isNew) router.replace(`${base}/${saved.id}`);
       else setC(saved);
     } catch (e) { setMsg({ ok: false, text: errorText(a, e) }); }
     setBusy(false);
@@ -64,27 +67,28 @@ export function CourseEditor({ id }: { id: string }) {
     <>
       <PageTitle actions={
         <>
-          <button className="btn btn-outline" onClick={() => router.push(`/${locale}/admin/courses`)}>{a.common.back}</button>
+          <button className="btn btn-outline" onClick={() => router.push(base)}>{a.common.back}</button>
           <button className="btn btn-gold" onClick={save} disabled={busy}>{busy ? a.common.saving : a.common.save}</button>
         </>
       }>{isNew ? t.newTitle : t.editTitle}</PageTitle>
+      {restricted && <p className="mb-4 rounded-2xl border border-gold/40 bg-gold/10 p-3 text-sm">{a.mp.restricted}</p>}
       {msg && <p role={msg.ok ? "status" : "alert"} className={`mb-4 rounded-xl p-3 text-sm font-medium ${msg.ok ? "bg-emerald-50 text-emerald-800" : "bg-red-50 text-red-700"}`}>{msg.text}</p>}
 
       <div className="space-y-6">
         <Panel title={t.basics}>
           <div className="grid gap-4 md:grid-cols-3">
-            <Field label={t.slug} hint={t.slugHint}><input className="input" dir="ltr" value={c.slug} disabled={!isNew} onChange={(e) => set("slug", e.target.value.toLowerCase())} /></Field>
-            <Field label={t.audienceField}><select className={sel} value={c.audience} onChange={(e) => set("audience", e.target.value as Audience)}>{Object.entries(t.audiences).map(([k, v]) => <option key={k} value={k}>{v}</option>)}</select></Field>
-            <Field label={t.level}><select className={sel} value={c.level} onChange={(e) => set("level", e.target.value as Level)}>{Object.entries(t.levels).map(([k, v]) => <option key={k} value={k}>{v}</option>)}</select></Field>
-            <Field label={t.topic}><select className={sel} value={c.topic} onChange={(e) => set("topic", e.target.value)}>{Object.entries(t.topics).map(([k, v]) => <option key={k} value={k}>{v}</option>)}</select></Field>
+            <Field label={t.slug} hint={t.slugHint}><input className="input" dir="ltr" value={c.slug} disabled={!isNew || restricted} onChange={(e) => set("slug", e.target.value.toLowerCase())} /></Field>
+            <Field label={t.audienceField}><select className={sel} disabled={restricted} value={c.audience} onChange={(e) => set("audience", e.target.value as Audience)}>{Object.entries(t.audiences).map(([k, v]) => <option key={k} value={k}>{v}</option>)}</select></Field>
+            <Field label={t.level}><select className={sel} disabled={restricted} value={c.level} onChange={(e) => set("level", e.target.value as Level)}>{Object.entries(t.levels).map(([k, v]) => <option key={k} value={k}>{v}</option>)}</select></Field>
+            <Field label={t.topic}><select className={sel} disabled={restricted} value={c.topic} onChange={(e) => set("topic", e.target.value)}>{Object.entries(t.topics).map(([k, v]) => <option key={k} value={k}>{v}</option>)}</select></Field>
             <Field label={t.mentorField}>
-              <select className={sel} value={c.mentorId} onChange={(e) => set("mentorId", e.target.value)}>
+              <select className={sel} disabled={restricted} value={c.mentorId} onChange={(e) => set("mentorId", e.target.value)}>
                 <option value="">-</option>{(mentors ?? []).map((m) => <option key={m.id} value={m.id}>{m.name[locale]}</option>)}
               </select>
             </Field>
             <Field label={t.hours}><input className="input" type="number" min={0} value={c.hours} onChange={(e) => set("hours", +e.target.value)} /></Field>
             <Field label={t.ageRange}><input className="input" dir="ltr" placeholder="6–9" value={c.ageRange ?? ""} onChange={(e) => set("ageRange", e.target.value)} /></Field>
-            <Field label={t.cpd}><input className="input" type="number" min={0} value={c.cpdPoints ?? ""} onChange={(e) => set("cpdPoints", e.target.value === "" ? null : +e.target.value)} /></Field>
+            <Field label={t.cpd}><input className="input" type="number" min={0} disabled={restricted} value={c.cpdPoints ?? ""} onChange={(e) => set("cpdPoints", e.target.value === "" ? null : +e.target.value)} /></Field>
             <div>
               <span className="mb-1.5 block text-sm font-bold text-navy">{t.languages}</span>
               <div className="flex gap-4 pt-2 text-sm">
@@ -96,7 +100,7 @@ export function CourseEditor({ id }: { id: string }) {
           </div>
           <div className="mt-4 flex flex-wrap gap-x-6 gap-y-2 text-sm">
             {([["published", t.visible], ["featured", t.featured], ["isNew", t.isNew], ["bestseller", t.bestseller], ["certificate", t.certificate]] as const).map(([k, l]) => (
-              <label key={k} className="flex items-center gap-2"><input type="checkbox" className="accent-[#c49c3e]" checked={k === "published" ? c.published !== false : !!c[k]} onChange={(e) => set(k, e.target.checked as never)} />{l}</label>
+              <label key={k} className="flex items-center gap-2"><input type="checkbox" disabled={restricted} className="accent-[#c49c3e]" checked={k === "published" ? c.published !== false : !!c[k]} onChange={(e) => set(k, e.target.checked as never)} />{l}</label>
             ))}
           </div>
         </Panel>
@@ -148,15 +152,15 @@ export function CourseEditor({ id }: { id: string }) {
             {c.offerings.map((o, oi) => (
               <div key={o.id || oi} className="rounded-2xl border border-navy/10 p-4">
                 <div className="grid gap-3 md:grid-cols-[150px_130px_130px_110px_1fr_auto]">
-                  <Field label={t.mode}><select className="input" value={o.mode} onChange={(e) => updOff(oi, (x) => ({ ...x, mode: e.target.value as Mode }))}>{Object.entries(t.modes).map(([k, v]) => <option key={k} value={k}>{v}</option>)}</select></Field>
-                  <Field label={t.price}><input className="input" type="number" min={0} step="0.01" dir="ltr" value={o.priceHalalas / 100} onChange={(e) => updOff(oi, (x) => ({ ...x, priceHalalas: Math.round(+e.target.value * 100) }))} /></Field>
-                  <Field label={t.compareAt}><input className="input" type="number" min={0} step="0.01" dir="ltr" value={o.compareAtHalalas ? o.compareAtHalalas / 100 : ""} onChange={(e) => updOff(oi, (x) => ({ ...x, compareAtHalalas: e.target.value ? Math.round(+e.target.value * 100) : undefined }))} /></Field>
-                  <Field label={t.accessDays}><input className="input" type="number" min={0} dir="ltr" value={o.accessDays ?? ""} onChange={(e) => updOff(oi, (x) => ({ ...x, accessDays: e.target.value ? +e.target.value : undefined }))} /></Field>
+                  <Field label={t.mode}><select className="input" disabled={restricted} value={o.mode} onChange={(e) => updOff(oi, (x) => ({ ...x, mode: e.target.value as Mode }))}>{Object.entries(t.modes).map(([k, v]) => <option key={k} value={k}>{v}</option>)}</select></Field>
+                  <Field label={t.price}><input className="input" type="number" min={0} step="0.01" dir="ltr" disabled={restricted} value={o.priceHalalas / 100} onChange={(e) => updOff(oi, (x) => ({ ...x, priceHalalas: Math.round(+e.target.value * 100) }))} /></Field>
+                  <Field label={t.compareAt}><input className="input" type="number" min={0} step="0.01" dir="ltr" disabled={restricted} value={o.compareAtHalalas ? o.compareAtHalalas / 100 : ""} onChange={(e) => updOff(oi, (x) => ({ ...x, compareAtHalalas: e.target.value ? Math.round(+e.target.value * 100) : undefined }))} /></Field>
+                  <Field label={t.accessDays}><input className="input" type="number" min={0} dir="ltr" disabled={restricted} value={o.accessDays ?? ""} onChange={(e) => updOff(oi, (x) => ({ ...x, accessDays: e.target.value ? +e.target.value : undefined }))} /></Field>
                   <div className="grid grid-cols-2 gap-2">
-                    <Field label={`${t.cohort} (ar)`}><input className="input" dir="rtl" value={o.cohortLabel?.ar ?? ""} onChange={(e) => updOff(oi, (x) => ({ ...x, cohortLabel: { ar: e.target.value, en: x.cohortLabel?.en ?? "" } }))} /></Field>
-                    <Field label={`${t.cohort} (en)`}><input className="input" dir="ltr" value={o.cohortLabel?.en ?? ""} onChange={(e) => updOff(oi, (x) => ({ ...x, cohortLabel: { ar: x.cohortLabel?.ar ?? "", en: e.target.value } }))} /></Field>
+                    <Field label={`${t.cohort} (ar)`}><input className="input" dir="rtl" disabled={restricted} value={o.cohortLabel?.ar ?? ""} onChange={(e) => updOff(oi, (x) => ({ ...x, cohortLabel: { ar: e.target.value, en: x.cohortLabel?.en ?? "" } }))} /></Field>
+                    <Field label={`${t.cohort} (en)`}><input className="input" dir="ltr" disabled={restricted} value={o.cohortLabel?.en ?? ""} onChange={(e) => updOff(oi, (x) => ({ ...x, cohortLabel: { ar: x.cohortLabel?.ar ?? "", en: e.target.value } }))} /></Field>
                   </div>
-                  <button className="self-end rounded-xl px-3 py-3 text-red-600 hover:bg-red-50" aria-label={a.common.remove} onClick={() => set("offerings", c.offerings.filter((_, i) => i !== oi))}>✕</button>
+                  {!restricted && <button className="self-end rounded-xl px-3 py-3 text-red-600 hover:bg-red-50" aria-label={a.common.remove} onClick={() => set("offerings", c.offerings.filter((_, i) => i !== oi))}>✕</button>}
                 </div>
                 {o.mode !== "recorded" && (
                   <div className="mt-4">
@@ -178,7 +182,7 @@ export function CourseEditor({ id }: { id: string }) {
                 )}
               </div>
             ))}
-            <button className="btn btn-outline" onClick={() => set("offerings", [...c.offerings, { id: "", mode: "recorded", priceHalalas: 0, sessions: [] }])}>+ {t.addOffering}</button>
+            {!restricted && <button className="btn btn-outline" onClick={() => set("offerings", [...c.offerings, { id: "", mode: "recorded", priceHalalas: 0, sessions: [] }])}>+ {t.addOffering}</button>}
           </div>
         </Panel>
       </div>

@@ -40,10 +40,24 @@ Base URL: `/api/v1`. JSON. Auth: `Authorization: Bearer <jwt>` (token from login
 | DELETE | `/admin/reviews/{id}` | Removes the review and adjusts course and mentor rating |
 | PUT | `/admin/reviews/{id}/reply` | `{ar,en}` to set the mentor reply, `{}` to clear |
 
+## Mentor (role `mentor` and a linked mentor profile; 403 `forbidden` / `no_mentor_profile`; other mentors' data is 404)
+
+| Method | Path | Notes |
+| --- | --- | --- |
+| GET, PUT | `/mentor/me` | Own profile (name, title, bio, expertise, languages, hue) |
+| GET | `/mentor/stats` | Learners, courses, rating, upcoming sessions, gross sales and per-course breakdown |
+| GET | `/mentor/courses`, `/mentor/courses/{id}` | Own courses (published or not) |
+| PUT | `/mentor/courses/{id}` | Content and sessions only (see docs/admin.md). Prices, slug, audience, publishing and offerings in the body are ignored. 400 `seats_below_taken` |
+| GET | `/mentor/sessions` | Upcoming sessions with enrolment counts |
+| GET | `/mentor/sessions/{id}/join` | `{url}` from `LiveVideo.joinLink` |
+| GET | `/mentor/learners` | Names and progress, no contact details |
+| GET | `/mentor/reviews` | Reviews of own courses |
+| PUT | `/mentor/reviews/{id}/reply` | `{ar,en}` or `{}` to clear |
+
 ## Health
 
 `GET /actuator/health`.
 
 ## Not built yet (planned)
 
-Password reset, email verification, mentor portal endpoints (own courses, own sessions, own reviews), refunds, course deletion, certificate verification page (`/certificates/{code}`), protected video playback URL (`VideoHosting`) and live join link (`LiveVideo`) endpoints, guardian-to-child profiles.
+Password reset, email verification, mentor payouts, refunds, course deletion, certificate verification page (`/certificates/{code}`), protected video playback URL (`VideoHosting`) and live join link (`LiveVideo`) endpoints, guardian-to-child profiles.

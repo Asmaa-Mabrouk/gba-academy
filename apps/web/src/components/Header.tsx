@@ -28,7 +28,7 @@ export function Header({ locale, t }: { locale: Locale; t: Dict }) {
       <div className="container-x flex h-[72px] items-center gap-6">
         <Link href={L("")} className="flex items-center gap-3" aria-label={t.brand.name}>
           <img src="/favicon-64.png" alt="" width={40} height={40} className="h-10 w-10" />
-          <span className="hidden leading-tight sm:block">
+          <span className="hidden whitespace-nowrap leading-tight min-[1500px]:block">
             <span className="block text-[15px] font-extrabold gold-text">{t.brand.name}</span>
             <span className="block text-[11px] text-white/60">{t.brand.tagline}</span>
           </span>

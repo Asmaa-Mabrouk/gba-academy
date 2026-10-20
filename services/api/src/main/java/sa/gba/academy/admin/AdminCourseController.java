@@ -5,7 +5,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
-import java.util.UUID;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.jdbc.core.simple.JdbcClient;
@@ -14,6 +13,7 @@ import org.springframework.web.bind.annotation.*;
 import sa.gba.academy.auth.Roles;
 import sa.gba.academy.catalog.CatalogController;
 import sa.gba.academy.common.ApiException;
+import sa.gba.academy.common.CourseWriter;
 import sa.gba.academy.common.Json;
 
 /**
@@ -30,10 +30,12 @@ public class AdminCourseController {
 
     private final JdbcClient db;
     private final Roles roles;
+    private final CourseWriter writer;
 
-    public AdminCourseController(JdbcClient db, Roles roles) {
+    public AdminCourseController(JdbcClient db, Roles roles, CourseWriter writer) {
         this.db = db;
         this.roles = roles;
+        this.writer = writer;
     }
 
     @GetMapping("/courses")
@@ -106,9 +108,9 @@ public class AdminCourseController {
                   bestseller = EXCLUDED.bestseller, age_range = EXCLUDED.age_range, certificate = EXCLUDED.certificate,
                   cpd_points = EXCLUDED.cpd_points, published = EXCLUDED.published""")
                 .param("id", id).param("slug", slug).param("aud", audience).param("lvl", level)
-                .param("topic", text(b, "topic")).param("title", bilingual(b, "title", true))
-                .param("sub", bilingual(b, "subtitle", false)).param("descr", bilingual(b, "description", false))
-                .param("outc", array(b, "outcomes")).param("modl", modules(b.path("modules")))
+                .param("topic", text(b, "topic")).param("title", writer.bilingual(b, "title", true))
+                .param("sub", writer.bilingual(b, "subtitle", false)).param("descr", writer.bilingual(b, "description", false))
+                .param("outc", array(b, "outcomes")).param("modl", writer.modules(b.path("modules")))
                 .param("mentor", mentorId).param("hours", b.path("hours").asInt(0)).param("langs", String.join(",", langs))
                 .param("feat", b.path("featured").asBoolean(false)).param("isnew", b.path("isNew").asBoolean(false))
                 .param("best", b.path("bestseller").asBoolean(false))
@@ -139,7 +141,7 @@ public class AdminCourseController {
                     .param("cmp", o.hasNonNull("compareAtHalalas") ? o.get("compareAtHalalas").asLong() : null)
                     .param("acc", o.hasNonNull("accessDays") ? o.get("accessDays").asInt() : null)
                     .param("coh", o.hasNonNull("cohortLabel") ? o.get("cohortLabel").toString() : null).update();
-            saveSessions(oid, o.path("sessions"));
+            writer.saveSessions(oid, o.path("sessions"));
         }
         // Remove offerings that were dropped, unless somebody already bought them.
         List<String> existing = db.sql("SELECT id FROM offerings WHERE course_id = :c").param("c", courseId).query(String.class).list();
@@ -151,51 +153,6 @@ public class AdminCourseController {
             db.sql("DELETE FROM live_sessions WHERE offering_id = :o").param("o", oid).update();
             db.sql("DELETE FROM offerings WHERE id = :o").param("o", oid).update();
         }
-    }
-
-    private void saveSessions(String offeringId, JsonNode sessions) {
-        List<String> keep = new ArrayList<>();
-        for (JsonNode s : sessions) {
-            String sid = s.hasNonNull("id") && !s.get("id").asText().isBlank() ? s.get("id").asText() : "s-" + UUID.randomUUID();
-            int seats = s.path("seats").asInt(0);
-            if (seats <= 0) throw new ApiException(HttpStatus.BAD_REQUEST, "invalid_seats");
-            keep.add(sid);
-            db.sql("""
-                    INSERT INTO live_sessions(id, offering_id, starts_at, duration_min, seats, title)
-                    VALUES (:id, :o, :at::timestamptz, :d, :seats, :t::jsonb)
-                    ON CONFLICT (id) DO UPDATE SET starts_at = EXCLUDED.starts_at, duration_min = EXCLUDED.duration_min,
-                      seats = EXCLUDED.seats, title = EXCLUDED.title WHERE live_sessions.offering_id = EXCLUDED.offering_id""")
-                    .param("id", sid).param("o", offeringId).param("at", text(s, "startsAt")).param("d", s.path("durationMin").asInt(60))
-                    .param("seats", seats).param("t", bilingual(s, "title", false)).update();
-        }
-        db.sql("DELETE FROM live_sessions WHERE offering_id = :o AND id <> ALL(string_to_array(:ids, ','))")
-                .param("o", offeringId).param("ids", String.join(",", keep)).update();
-    }
-
-    /** Make sure every module and lesson has a stable id, so learner progress keeps pointing at the right lessons. */
-    private String modules(JsonNode modules) {
-        var mapper = new com.fasterxml.jackson.databind.ObjectMapper();
-        var out = mapper.createArrayNode();
-        int mi = 0;
-        for (JsonNode m : modules) {
-            mi++;
-            var mo = mapper.createObjectNode();
-            mo.put("id", m.hasNonNull("id") && !m.get("id").asText().isBlank() ? m.get("id").asText() : "m" + mi + "-" + UUID.randomUUID().toString().substring(0, 4));
-            mo.set("title", m.path("title"));
-            var ls = mo.putArray("lessons");
-            for (JsonNode l : m.path("lessons")) {
-                var lo = mapper.createObjectNode();
-                lo.put("id", l.hasNonNull("id") && !l.get("id").asText().isBlank() ? l.get("id").asText() : "l-" + UUID.randomUUID().toString().substring(0, 8));
-                lo.set("title", l.path("title"));
-                lo.put("minutes", l.path("minutes").asInt(0));
-                String kind = l.path("kind").asText("video");
-                lo.put("kind", Set.of("video", "live", "quiz", "resource").contains(kind) ? kind : "video");
-                lo.put("preview", l.path("preview").asBoolean(false));
-                ls.add(lo);
-            }
-            out.add(mo);
-        }
-        return out.toString();
     }
 
     private static String text(JsonNode n, String f) {
@@ -211,16 +168,4 @@ public class AdminCourseController {
     }
 
     private static String array(JsonNode n, String f) { return n.path(f).isArray() ? n.get(f).toString() : "[]"; }
-
-    /** {ar,en}. Arabic is required when `required`; a missing language falls back to the other. */
-    private static String bilingual(JsonNode n, String f, boolean required) {
-        String ar = n.path(f).path("ar").asText("").trim();
-        String en = n.path(f).path("en").asText("").trim();
-        if (required && ar.isEmpty() && en.isEmpty()) throw new ApiException(HttpStatus.BAD_REQUEST, "missing_" + f);
-        var mapper = new com.fasterxml.jackson.databind.ObjectMapper();
-        var o = mapper.createObjectNode();
-        o.put("ar", ar.isEmpty() ? en : ar);
-        o.put("en", en.isEmpty() ? ar : en);
-        return o.toString();
-    }
 }

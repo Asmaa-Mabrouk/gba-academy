@@ -2,9 +2,9 @@ import type { Locale, User } from "./types";
 
 /**
  * One login, several interfaces. The signed-in user's roles decide which portals exist for them.
- * Learners always have the public site and "My courses". Add the mentor portal here when it is built.
+ * Learners always have the public site and "My courses". Admin lands first, then mentor.
  */
-export const MENTOR_PORTAL_READY = false;
+export const MENTOR_PORTAL_READY = true;
 
 export function portalsFor(user: User | null, locale: Locale): { role: "admin" | "mentor"; href: string }[] {
   if (!user) return [];

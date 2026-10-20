@@ -8,7 +8,7 @@ import { useAuth } from "@/lib/store";
 import type { Locale } from "@/lib/types";
 
 interface Ctx { locale: Locale; a: AdminDict; token: string }
-const AdminCtx = createContext<Ctx | null>(null);
+export const AdminCtx = createContext<Ctx | null>(null);
 export const useAdmin = () => { const c = useContext(AdminCtx); if (!c) throw new Error("AdminShell missing"); return c; };
 
 /** Guards the /admin area and draws its sidebar. Mentor portal can reuse this pattern with role "mentor". */

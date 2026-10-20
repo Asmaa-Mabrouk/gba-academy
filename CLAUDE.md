@@ -12,6 +12,6 @@ Read `docs/README.md` first. Key rules:
 - Brand tokens are in `apps/web/src/app/globals.css` (`@theme`). Fonts: Tajawal (Arabic), Roboto (Latin).
 - Sample data: edit `apps/web/src/lib/mock-data.ts`, then run `node --experimental-strip-types scripts/generate-seed.mjs` to regenerate `V2__sample_data.sql`.
 - Never edit an applied Flyway migration. Add a new `V<n>__name.sql`.
-- One login, roles decide interfaces: `learner`, `mentor`, `admin` (`users.roles`). Every privileged API call must use `Roles.require(req, "<role>")`. Web guards are only convenience. See `docs/admin.md`.
+- One login, roles decide interfaces: `learner`, `mentor`, `admin` (`users.roles`). Every privileged API call must use `Roles.require(req, "<role>")`. Web guards are only convenience. Mentor endpoints must scope by the linked mentor profile and never expose learner contact data. See `docs/admin.md`.
 - Kids safety: kids' courses are bought by a parent or guardian account. Do not collect personal data from children.
 - Before finishing: `cd apps/web && npm run typecheck && npm run build`; `cd services/api && mvn test`.

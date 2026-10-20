@@ -183,3 +183,11 @@ export interface AdminOrder {
   lines: { courseSlug: string; courseTitle: Bilingual; mode: Mode; priceHalalas: number }[];
 }
 export interface AdminReview { id: string; courseSlug: string; courseTitle: Bilingual; author: string; rating: number; comment: Bilingual; mentorReply?: Bilingual | null; createdAt: string }
+
+// ---- mentor portal ----
+export interface MentorStats {
+  courses: number; learners: number; rating: number; reviewCount: number; upcomingSessions: number; grossHalalas: number;
+  byCourse: { slug: string; title: Bilingual; learners: number; grossHalalas: number }[];
+}
+export interface MentorLearner { name: string; courseSlug: string; courseTitle: Bilingual; mode: Mode; progressPct: number; enrolledAt: string; completed: boolean; guardian: boolean }
+export interface MentorSession { id: string; startsAt: string; durationMin: number; seats: number; enrolled: number; title: Bilingual; courseSlug: string; courseTitle: Bilingual; mode: Mode }

@@ -39,10 +39,10 @@ const httpAdmin: AdminApi = {
 };
 
 // ---------------- mock ----------------
-const MK = { courses: "gba.admin.courses", mentors: "gba.admin.mentors", reviews: "gba.admin.reviews" };
-const getCourses = () => read<Course[]>(MK.courses, COURSES.map((c) => ({ ...c, published: true })));
-const getMentors = () => read<AdminMentor[]>(MK.mentors, MENTORS.map((m) => ({ ...m, userId: null, userEmail: m.id === "m1" ? "mentor@demo.sa" : null })));
-const getReviews = () => read<Review[]>(MK.reviews, REVIEWS);
+export const MK = { courses: "gba.admin.courses", mentors: "gba.admin.mentors", reviews: "gba.admin.reviews" };
+export const getCourses = () => read<Course[]>(MK.courses, COURSES.map((c) => ({ ...c, published: true })));
+export const getMentors = () => read<AdminMentor[]>(MK.mentors, MENTORS.map((m) => ({ ...m, userId: null, userEmail: m.id === "m1" ? "mentor@demo.sa" : null })));
+export const getReviews = () => read<Review[]>(MK.reviews, REVIEWS);
 const uid = (p: string) => `${p}-${Math.random().toString(36).slice(2, 8)}`;
 const guard = (t: string) => {
   const u = seedUsers().find((x) => x.id === idOf(t));
