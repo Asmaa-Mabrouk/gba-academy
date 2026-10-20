@@ -170,6 +170,7 @@ export const en: typeof ar = {
     live: "Live",
     recorded: "Recorded",
     refundNote: "The refund policy is shown before you pay.",
+    cohortBooked: "booked", cohortOf: "of", cohortRunsAt: "Runs once {n} learners have booked", cohortRunning: "This cohort is confirmed", cohortFull: "Fully booked",
     startsOn: "Starts",
     duration: "Duration",
     related: "Similar courses",
@@ -234,6 +235,8 @@ export const en: typeof ar = {
   },
   checkout: {
     title: "Checkout",
+    promoLabel: "Have a promo code?", promoPlaceholder: "Enter code", promoApply: "Apply", promoRemove: "Remove", promoApplied: "Code applied", promoDiscount: "Promo discount",
+    promoErrors: { promo_invalid: "This code is not valid", promo_inactive: "This code is not active", promo_expired: "This code has expired", promo_exhausted: "This code has reached its usage limit", promo_used: "You have already used this code", default: "Could not check the code" },
     method: "Payment method",
     mada: "mada",
     applepay: "Apple Pay",
@@ -271,6 +274,9 @@ export const en: typeof ar = {
   },
   learn: {
     lessonList: "Lessons",
+    watch: "Watch the lesson", videoMissing: "No video has been uploaded for this lesson yet.", materials: "Lesson files", courseMaterials: "Course files", download: "Download", lessonAbout: "About this lesson",
+    joinLive: "Join the live session", joining: "Opening the session…", joinFailed: "Could not open the session link. Try again later or contact the academy.", nextSession: "Next session", liveNotice: "The session runs on Google Meet. Join a few minutes early.",
+    quiz: "Lesson quiz", quizIntro: "Answer the questions. You need {pct}% to pass and finish the lesson.", quizSubmit: "Submit answers", quizAnswerAll: "Answer every question first", quizPassed: "You passed! Your score is {score}% ({c} of {n})", quizFailed: "Your score is {score}% ({c} of {n}). You need {pct}% to pass. Try again.", quizRetry: "Try again", quizCorrect: "Correct", quizWrong: "Incorrect", quizRight: "Correct answer",
     markDone: "Mark lesson as done",
     done: "Done",
     videoPlaceholder: "The video player appears here once a video hosting service is connected.",

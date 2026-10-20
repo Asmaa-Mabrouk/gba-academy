@@ -13,21 +13,41 @@ import sa.gba.academy.common.Json;
 @RestController
 @RequestMapping("/api/v1")
 public class CatalogController {
-    public static final String COURSE_JSON = """
+    /** Public shape of a course. Never includes quiz answers, meeting links or review notes. */
+    public static final String COURSE_JSON = courseJson(false);
+    /** Staff shape (admin and mentor portals): adds approval status, quizzes with answers and the meeting link of each session. */
+    public static final String COURSE_STAFF_JSON = courseJson(true);
+
+    private static String courseJson(boolean staff) {
+        String sessionExtra = staff ? ",'joinUrl',s.join_url,'meetingProvider',s.meeting_provider" : "";
+        // Videos and files are paid content: the public shape leaves them out. Enrolled learners get them from /me/enrollments/{slug}/content.
+        String modules = staff ? "c.modules" : """
+            (SELECT coalesce(jsonb_agg((m.v - 'lessons') || jsonb_build_object('lessons',
+                (SELECT coalesce(jsonb_agg(l.v - 'video' - 'materials' ORDER BY l.n), '[]'::jsonb)
+                 FROM jsonb_array_elements(coalesce(m.v->'lessons','[]'::jsonb)) WITH ORDINALITY AS l(v,n))) ORDER BY m.n), '[]'::jsonb)
+             FROM jsonb_array_elements(coalesce(c.modules,'[]'::jsonb)) WITH ORDINALITY AS m(v,n))""";
+        String materials = staff ? "c.materials" : "'[]'::jsonb";
+        String courseExtra = staff ? ",'status',c.status,'reviewNote',c.review_note,'submittedAt',c.submitted_at,'quizzes',c.quizzes" : "";
+        String sql = """
             json_build_object(
               'id',c.id,'slug',c.slug,'audience',c.audience,'level',c.level,'topic',c.topic,
-              'title',c.title,'subtitle',c.subtitle,'description',c.description,'outcomes',c.outcomes,'modules',c.modules,
+              'title',c.title,'subtitle',c.subtitle,'description',c.description,'outcomes',c.outcomes,'modules',@MODULES@,
               'mentorId',c.mentor_id,'rating',c.rating,'reviewCount',c.review_count,'learners',c.learners,'hours',c.hours,
               'languages',c.languages,'featured',c.featured,'isNew',c.is_new,'bestseller',c.bestseller,
               'ageRange',c.age_range,'certificate',c.certificate,'cpdPoints',c.cpd_points,'published',c.published,
-              'offerings',(SELECT coalesce(json_agg(json_build_object(
+              'materials',@MATERIALS@""" + courseExtra + """
+              ,'offerings',(SELECT coalesce(json_agg(json_build_object(
                   'id',o.id,'mode',o.mode,'priceHalalas',o.price_halalas,'compareAtHalalas',o.compare_at_halalas,
-                  'accessDays',o.access_days,'cohortLabel',o.cohort_label,
+                  'accessDays',o.access_days,'cohortLabel',o.cohort_label,'capacity',o.capacity,'minLearners',o.min_learners,
+                  'enrolled',(SELECT count(*) FROM enrollments en WHERE en.offering_id = o.id),
                   'sessions',(SELECT coalesce(json_agg(json_build_object('id',s.id,'startsAt',s.starts_at,
-                       'durationMin',s.duration_min,'seats',s.seats,'seatsLeft',s.seats - s.seats_taken,'title',s.title)
-                       ORDER BY s.starts_at),'[]'::json) FROM live_sessions s WHERE s.offering_id = o.id)
+                       'durationMin',s.duration_min,'seats',s.seats,'seatsLeft',s.seats - s.seats_taken,'title',s.title""" + sessionExtra + """
+                       ) ORDER BY s.starts_at),'[]'::json) FROM live_sessions s WHERE s.offering_id = o.id)
                 ) ORDER BY o.price_halalas),'[]'::json) FROM offerings o WHERE o.course_id = c.id)
             )::text""";
+        return sql.replace("@MODULES@", modules).replace("@MATERIALS@", materials);
+    }
+
 
     private final JdbcClient db;
 
@@ -73,7 +93,7 @@ public class CatalogController {
     private static final String MENTOR_JSON = """
             SELECT json_build_object('id',m.id,'slug',m.slug,'name',m.name,'title',m.title,'bio',m.bio,
               'expertise',m.expertise,'languages',m.languages,'rating',m.rating,'reviewCount',m.review_count,
-              'courseCount',(SELECT count(*) FROM courses c WHERE c.mentor_id = m.id),'learners',m.learners,'hue',m.hue)::text
+              'courseCount',(SELECT count(*) FROM courses c WHERE c.mentor_id = m.id AND c.published),'learners',m.learners,'hue',m.hue,'imageUrl',m.image_url)::text
             FROM mentors m""";
 
     @GetMapping("/mentors")

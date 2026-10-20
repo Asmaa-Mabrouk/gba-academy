@@ -3,8 +3,8 @@
 // NEXT_PUBLIC_API_MODE=http  -> the Java API at NEXT_PUBLIC_API_URL (contract: docs/api/)
 import { COURSES, DEMO_ACCOUNTS, MENTORS, REVIEWS } from "./mock-data";
 import type {
-  AuthResult, Course, CourseFilters, Enrollment, Mentor, Order, OrderLine, PaymentMethod,
-  RegisterInput, Review, User,
+  AuthResult, Course, CourseContent, CourseFilters, Enrollment, Mentor, Order, OrderLine, PaymentMethod, PromoCode, PromoQuote,
+  Quiz, QuizResult, RegisterInput, Review, UploadedFile, UploadKind, User,
 } from "./types";
 import { VAT_RATE } from "./types";
 
@@ -60,6 +60,58 @@ const mockCatalog: CatalogApi = {
   reviews: async (slug) => REVIEWS.filter((r) => r.courseSlug === slug),
 };
 
+/** The API's address without the /api/v1 part, for links to uploaded files. */
+export const apiOrigin = () => BASE.replace(/\/api\/v1\/?$/, "");
+
+/**
+ * Browser-ready address of a stored file. Uploaded files are served by the API (`/api/v1/files/<id>`); videos and documents
+ * need the signed-in user, and a <video> or download link cannot send a header, so pass the token to add `?t=`.
+ * Mock-mode files are data URLs and https links, which pass through unchanged.
+ */
+export function fileUrl(u: string | null | undefined, token?: string | null): string {
+  if (!u) return "";
+  if (!u.startsWith("/api/")) return u;
+  const abs = apiOrigin() + u;
+  return token ? `${abs}?t=${encodeURIComponent(token)}` : abs;
+}
+
+const MOCK_MAX: Record<UploadKind, number> = { image: 1.5e6, document: 2e6, video: 3e6 };
+export const UPLOAD_MAX: Record<UploadKind, number> = { image: 5 * 1048576, document: 25 * 1048576, video: 500 * 1048576 };
+export const UPLOAD_ACCEPT: Record<UploadKind, string> = {
+  image: "image/png,image/jpeg,image/webp",
+  document: ".pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx",
+  video: "video/mp4,video/webm",
+};
+
+/** Upload an image, a lesson video or a document. http: multipart POST /uploads. mock: kept in the browser as a small data URL. */
+export async function uploadFile(token: string, file: File, kind: UploadKind, onProgress?: (pct: number) => void): Promise<UploadedFile> {
+  if (file.size > UPLOAD_MAX[kind]) throw new ApiError("file_too_large");
+  if (MODE !== "http") {
+    if (file.size > MOCK_MAX[kind]) throw new ApiError("mock_file_too_big");
+    const url = await new Promise<string>((res, rej) => { const r = new FileReader(); r.onload = () => res(String(r.result)); r.onerror = () => rej(new ApiError("error")); r.readAsDataURL(file); });
+    onProgress?.(100);
+    return { id: `mock-${Date.now()}`, url, name: file.name, size: file.size, kind, contentType: file.type };
+  }
+  // XMLHttpRequest, not fetch, so a large video can report its progress.
+  return new Promise((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+    xhr.open("POST", `${BASE}/uploads`);
+    xhr.setRequestHeader("Authorization", `Bearer ${token}`);
+    xhr.upload.onprogress = (e) => { if (e.lengthComputable) onProgress?.(Math.round((100 * e.loaded) / e.total)); };
+    xhr.onerror = () => reject(new ApiError("network"));
+    xhr.onload = () => {
+      let body: { code?: string } & Partial<UploadedFile> = {};
+      try { body = JSON.parse(xhr.responseText); } catch { /* not JSON */ }
+      if (xhr.status >= 200 && xhr.status < 300) resolve(body as UploadedFile);
+      else reject(new ApiError(body.code ?? (xhr.status === 413 ? "file_too_large" : "error")));
+    };
+    const form = new FormData();
+    form.append("kind", kind);
+    form.append("file", file);
+    xhr.send(form);
+  });
+}
+
 export async function http<T>(path: string, init?: RequestInit & { token?: string | null }): Promise<T> {
   const headers: Record<string, string> = { "Content-Type": "application/json" };
   if (init?.token) headers.Authorization = `Bearer ${init.token}`;
@@ -91,15 +143,20 @@ export interface UserApi {
   register(input: RegisterInput): Promise<AuthResult>;
   login(email: string, password: string): Promise<AuthResult>;
   me(token: string): Promise<User | null>;
-  checkout(token: string, lines: OrderLine[], method: PaymentMethod): Promise<Order>;
+  checkout(token: string, lines: OrderLine[], method: PaymentMethod, promoCode?: string): Promise<Order>;
+  validatePromo(token: string, code: string, offeringIds: string[], grossHalalas: number): Promise<PromoQuote>;
   enrollments(token: string): Promise<Enrollment[]>;
   completeLesson(token: string, courseSlug: string, lessonId: string): Promise<Enrollment>;
+  quiz(token: string, courseSlug: string, lessonId: string): Promise<Quiz>;
+  submitQuiz(token: string, courseSlug: string, lessonId: string, answers: Record<string, string>): Promise<QuizResult>;
+  joinSession(token: string, sessionId: string): Promise<string>;
+  content(token: string, courseSlug: string): Promise<CourseContent>;
   addReview(token: string, courseSlug: string, rating: number, comment: string, author: string): Promise<Review>;
   extraReviews(courseSlug: string): Promise<Review[]>;
 }
 
 // --- mock implementation: everything lives in localStorage ---
-export const K = { users: "gba.users", enr: "gba.enrollments", orders: "gba.orders", reviews: "gba.reviews" };
+export const K = { users: "gba.users", enr: "gba.enrollments", orders: "gba.orders", reviews: "gba.reviews", promos: "gba.admin.promos", adminCourses: "gba.admin.courses" };
 export function read<T>(key: string, fallback: T): T {
   try { const v = localStorage.getItem(key); return v ? (JSON.parse(v) as T) : fallback; } catch { return fallback; }
 }
@@ -124,6 +181,21 @@ export const idOf = (t: string) => t.replace("mock.", "");
 
 const total0 = (lines: OrderLine[]) => lines.reduce((s, l) => s + l.priceHalalas, 0);
 
+/** Mock copy of the server's promo rules (PromoService.java): same error codes. */
+type MockPromo = PromoCode & { usedBy?: string[] };
+function mockQuote(raw: string, uid: string, gross: number): PromoQuote {
+  const code = raw.trim().toUpperCase();
+  const p = read<MockPromo[]>(K.promos, []).find((x) => x.code === code);
+  if (!code || !p) throw new ApiError("promo_invalid");
+  if (!p.active) throw new ApiError("promo_inactive");
+  if (p.expiresAt && +new Date(p.expiresAt) < Date.now()) throw new ApiError("promo_expired");
+  if (p.maxUses != null && p.usedCount >= p.maxUses) throw new ApiError("promo_exhausted");
+  if (p.usedBy?.includes(uid)) throw new ApiError("promo_used");
+  const discount = Math.min(gross, Math.round((gross * p.percentOff) / 100));
+  return { code, percentOff: p.percentOff, grossHalalas: gross, discountHalalas: discount, totalHalalas: gross - discount };
+}
+const mockQuizOf = (slug: string, lessonId: string): Quiz | undefined => read<Course[]>(K.adminCourses, []).find((c) => c.slug === slug)?.quizzes?.[lessonId];
+
 const mockUser: UserApi = {
   async register(i) {
     const users = seedUsers();
@@ -142,19 +214,24 @@ const mockUser: UserApi = {
     const u = seedUsers().find((x) => x.id === idOf(token));
     return u ? strip(u) : null;
   },
-  async checkout(token, lines, method) {
+  async validatePromo(token, code, _ids, gross) { return mockQuote(code, idOf(token), gross); },
+  async checkout(token, lines, method, promoCode) {
     const uid = idOf(token);
     const owned = read<Record<string, Enrollment[]>>(K.enr, {})[uid] ?? [];
     if (lines.some((l) => owned.some((e) => e.offeringId === l.offeringId))) throw new ApiError("already_enrolled");
     await new Promise((r) => setTimeout(r, total0(lines) === 0 ? 200 : 1400)); // fake gateway latency (none for free courses)
-    const total = lines.reduce((s, l) => s + l.priceHalalas, 0);
+    const gross = lines.reduce((s, l) => s + l.priceHalalas, 0);
+    const quote = promoCode?.trim() ? mockQuote(promoCode, uid, gross) : null;
+    const total = quote ? quote.totalHalalas : gross;
     const net = Math.round(total / (1 + VAT_RATE));
     const n = read<unknown[]>(K.orders, []).length + 1;
     const order: Order = {
       id: `o-${Date.now()}`, number: `GBA-${new Date().getFullYear()}-${String(n).padStart(5, "0")}`, status: "paid",
       lines, subtotalHalalas: net, vatHalalas: total - net, totalHalalas: total, paymentMethod: method,
       createdAt: new Date().toISOString(), invoiceNumber: total === 0 ? undefined : `INV-${String(n).padStart(6, "0")}`,
+      promoCode: quote?.code ?? null, discountHalalas: quote?.discountHalalas ?? 0,
     };
+    if (quote) write(K.promos, read<MockPromo[]>(K.promos, []).map((p) => (p.code === quote.code ? { ...p, usedCount: p.usedCount + 1, usedBy: [...(p.usedBy ?? []), uid] } : p)));
     const buyer = seedUsers().find((x) => x.id === uid);
     write(K.orders, [...read<unknown[]>(K.orders, []), { ...order, userName: buyer?.fullName ?? "", userEmail: buyer?.email ?? "" }]);
     const all = read<Record<string, Enrollment[]>>(K.enr, {});
@@ -183,6 +260,7 @@ const mockUser: UserApi = {
     const all = read<Record<string, Enrollment[]>>(K.enr, {});
     const e = (all[uid] ?? []).find((x) => x.courseSlug === courseSlug);
     if (!e) throw new ApiError("not_enrolled");
+    if (mockQuizOf(courseSlug, lessonId)) throw new ApiError("quiz_required");
     const c = COURSES.find((x) => x.slug === courseSlug)!;
     const total = c.modules.reduce((s, m) => s + m.lessons.length, 0);
     if (!e.completedLessonIds.includes(lessonId)) e.completedLessonIds.push(lessonId);
@@ -191,6 +269,47 @@ const mockUser: UserApi = {
     if (e.progressPct === 100 && !e.certificateCode) e.certificateCode = `GBA-${Math.random().toString(36).slice(2, 8).toUpperCase()}`;
     write(K.enr, all);
     return e;
+  },
+  async quiz(token, slug, lessonId) {
+    const enrolled = (read<Record<string, Enrollment[]>>(K.enr, {})[idOf(token)] ?? []).some((e) => e.courseSlug === slug);
+    if (!enrolled) throw new ApiError("not_enrolled");
+    const q = mockQuizOf(slug, lessonId);
+    if (!q) throw new ApiError("not_found");
+    return { passPct: q.passPct, questions: q.questions.map(({ id, prompt, options }) => ({ id, prompt, options })) };
+  },
+  async submitQuiz(token, slug, lessonId, answers) {
+    const q = mockQuizOf(slug, lessonId);
+    if (!q) throw new ApiError("not_found");
+    const results = q.questions.map((x) => ({ id: x.id, correct: !!x.correctId && answers[x.id] === x.correctId, correctId: x.correctId ?? "", explanation: x.explanation }));
+    const correct = results.filter((r) => r.correct).length;
+    const scorePct = q.questions.length ? Math.round((100 * correct) / q.questions.length) : 0;
+    const passed = q.questions.length > 0 && scorePct >= q.passPct;
+    let enrollment: Enrollment | null = null;
+    if (passed) {
+      const uid = idOf(token);
+      const all = read<Record<string, Enrollment[]>>(K.enr, {});
+      const e = (all[uid] ?? []).find((x) => x.courseSlug === slug);
+      if (e) {
+        if (!e.completedLessonIds.includes(lessonId)) e.completedLessonIds.push(lessonId);
+        const total = COURSES.find((c) => c.slug === slug)?.modules.reduce((n, m) => n + m.lessons.length, 0) ?? 1;
+        e.progressPct = Math.min(100, Math.round((e.completedLessonIds.length / total) * 100));
+        write(K.enr, all);
+        enrollment = e;
+      }
+    }
+    return { correct, total: q.questions.length, scorePct, passPct: q.passPct, passed, results, enrollment };
+  },
+  async content(token, slug) {
+    const enrolled = (read<Record<string, Enrollment[]>>(K.enr, {})[idOf(token)] ?? []).some((e) => e.courseSlug === slug);
+    if (!enrolled) throw new ApiError("not_enrolled");
+    const c = read<Course[]>(K.adminCourses, []).find((x) => x.slug === slug) ?? COURSES.find((x) => x.slug === slug);
+    if (!c) throw new ApiError("not_found");
+    return { modules: c.modules.map((m) => ({ ...m, lessons: m.lessons.map((l) => ({ ...l, hasQuiz: !!c.quizzes?.[l.id] })) })), materials: c.materials ?? [] };
+  },
+  async joinSession(_t, sessionId) {
+    const url = read<Course[]>(K.adminCourses, []).flatMap((c) => c.offerings.flatMap((o) => o.sessions)).find((x) => x.id === sessionId)?.joinUrl;
+    if (!url) throw new ApiError("meeting_unavailable");
+    return url;
   },
   async addReview(token, courseSlug, rating, comment, author) {
     const enrolled = (read<Record<string, Enrollment[]>>(K.enr, {})[idOf(token)] ?? []).some((e) => e.courseSlug === courseSlug);
@@ -206,9 +325,14 @@ const httpUser: UserApi = {
   register: (i) => http("/auth/register", { method: "POST", body: JSON.stringify(i) }),
   login: (email, password) => http("/auth/login", { method: "POST", body: JSON.stringify({ email, password }) }),
   me: (token) => http<User>("/me", { token }).catch(() => null),
-  checkout: (token, lines, method) => http("/orders", { method: "POST", token, body: JSON.stringify({ lines, paymentMethod: method }) }),
+  checkout: (token, lines, method, promoCode) => http("/orders", { method: "POST", token, body: JSON.stringify({ lines, paymentMethod: method, promoCode: promoCode?.trim() || undefined }) }),
+  validatePromo: (token, code, offeringIds) => http("/promo/validate", { method: "POST", token, body: JSON.stringify({ code, offeringIds }) }),
   enrollments: (token) => http("/me/enrollments", { token }),
   completeLesson: (token, slug, lessonId) => http(`/me/enrollments/${slug}/lessons/${lessonId}/complete`, { method: "POST", token }),
+  quiz: (token, slug, lessonId) => http(`/me/enrollments/${slug}/lessons/${lessonId}/quiz`, { token }),
+  submitQuiz: (token, slug, lessonId, answers) => http(`/me/enrollments/${slug}/lessons/${lessonId}/quiz`, { method: "POST", token, body: JSON.stringify({ answers }) }),
+  content: (token, slug) => http(`/me/enrollments/${slug}/content`, { token }),
+  joinSession: async (token, id) => (await http<{ url: string }>(`/me/sessions/${id}/join`, { token })).url,
   addReview: (token, slug, rating, comment) => http(`/courses/${slug}/reviews`, { method: "POST", token, body: JSON.stringify({ rating, comment }) }),
   extraReviews: async () => [],
 };

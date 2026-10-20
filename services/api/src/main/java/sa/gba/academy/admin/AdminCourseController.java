@@ -2,9 +2,9 @@ package sa.gba.academy.admin;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import jakarta.servlet.http.HttpServletRequest;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
+import java.util.Map;
+import java.util.UUID;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.jdbc.core.simple.JdbcClient;
@@ -15,33 +15,34 @@ import sa.gba.academy.catalog.CatalogController;
 import sa.gba.academy.common.ApiException;
 import sa.gba.academy.common.CourseWriter;
 import sa.gba.academy.common.Json;
+import sa.gba.academy.integrations.MessagingService;
 
 /**
- * Admin: manage courses with their offerings and live sessions in one call.
- * The body has the same shape as GET /courses/{slug} (apps/web/src/lib/types.ts, `Course`).
+ * Admin: manage courses with their offerings and live sessions in one call, and decide on courses mentors submit.
+ * The body has the same shape as GET /admin/courses/{id} (apps/web/src/lib/types.ts, `Course`).
  */
 @RestController
 @RequestMapping("/api/v1/admin")
 public class AdminCourseController {
-    private static final Set<String> AUDIENCES = Set.of("kids", "youth", "experts");
-    private static final Set<String> LEVELS = Set.of("beginner", "intermediate", "advanced");
-    private static final Set<String> MODES = Set.of("recorded", "live", "blended");
-    private static final String SELECT = "SELECT " + CatalogController.COURSE_JSON + " FROM courses c";
+    private static final String SELECT = "SELECT " + CatalogController.COURSE_STAFF_JSON + " FROM courses c";
 
     private final JdbcClient db;
     private final Roles roles;
     private final CourseWriter writer;
+    private final MessagingService messaging;
 
-    public AdminCourseController(JdbcClient db, Roles roles, CourseWriter writer) {
+    public AdminCourseController(JdbcClient db, Roles roles, CourseWriter writer, MessagingService messaging) {
         this.db = db;
         this.roles = roles;
         this.writer = writer;
+        this.messaging = messaging;
     }
 
     @GetMapping("/courses")
     public ResponseEntity<String> list(HttpServletRequest req) {
         roles.require(req, "admin");
-        return Json.array(db.sql(SELECT + " ORDER BY c.audience, c.title ->> 'ar'").query(String.class).list());
+        // Courses waiting for a decision first, then the rest.
+        return Json.array(db.sql(SELECT + " ORDER BY (c.status = 'pending') DESC, c.audience, c.title ->> 'ar'").query(String.class).list());
     }
 
     @GetMapping("/courses/{id}")
@@ -53,12 +54,13 @@ public class AdminCourseController {
     @PostMapping("/courses")
     @Transactional
     public ResponseEntity<String> create(@RequestBody JsonNode b, HttpServletRequest req) {
-        roles.require(req, "admin");
-        String slug = text(b, "slug");
+        UUID admin = roles.require(req, "admin");
+        String slug = CourseWriter.text(b, "slug");
         String id = "c-" + slug;
         if (db.sql("SELECT count(*) FROM courses WHERE id = :id OR slug = :s").param("id", id).param("s", slug).query(Integer.class).single() > 0)
             throw new ApiException(HttpStatus.CONFLICT, "slug_exists");
-        return Json.of(save(id, b));
+        writer.saveCourse(id, b, new CourseWriter.Opts(null, true, "approved", admin));
+        return Json.of(load(id));
     }
 
     @PutMapping("/courses/{id}")
@@ -66,14 +68,54 @@ public class AdminCourseController {
     public ResponseEntity<String> update(@PathVariable String id, @RequestBody JsonNode b, HttpServletRequest req) {
         roles.require(req, "admin");
         load(id); // 404 if missing
-        return Json.of(save(id, b));
+        writer.saveCourse(id, b, new CourseWriter.Opts(null, true, null, null));
+        return Json.of(load(id));
     }
 
     @PutMapping("/courses/{id}/published")
     public ResponseEntity<String> publish(@PathVariable String id, @RequestBody JsonNode b, HttpServletRequest req) {
         roles.require(req, "admin");
-        db.sql("UPDATE courses SET published = :p WHERE id = :id").param("p", b.path("published").asBoolean(false)).param("id", id).update();
+        boolean want = b.path("published").asBoolean(false);
+        String status = status(id);
+        if (want && !"approved".equals(status)) throw new ApiException(HttpStatus.CONFLICT, "not_approved");
+        db.sql("UPDATE courses SET published = :p WHERE id = :id").param("p", want).param("id", id).update();
         return Json.of(load(id));
+    }
+
+    /** Approve a submitted course. Body {"publish": true} (default) also makes it visible to learners. */
+    @PostMapping("/courses/{id}/approve")
+    @Transactional
+    public ResponseEntity<String> approve(@PathVariable String id, @RequestBody(required = false) JsonNode b, HttpServletRequest req) {
+        roles.require(req, "admin");
+        if (!"pending".equals(status(id))) throw new ApiException(HttpStatus.CONFLICT, "not_pending");
+        writer.requireComplete(id);
+        boolean publish = b == null || b.path("publish").asBoolean(true);
+        db.sql("UPDATE courses SET status = 'approved', published = :p, review_note = NULL WHERE id = :id").param("p", publish).param("id", id).update();
+        tell(id, "course_approved", "");
+        return Json.of(load(id));
+    }
+
+    /** Send a submitted course back to its mentor with a reason (required). The mentor can edit and submit again. */
+    @PostMapping("/courses/{id}/reject")
+    @Transactional
+    public ResponseEntity<String> reject(@PathVariable String id, @RequestBody JsonNode b, HttpServletRequest req) {
+        roles.require(req, "admin");
+        if (!"pending".equals(status(id))) throw new ApiException(HttpStatus.CONFLICT, "not_pending");
+        String note = b.path("note").asText("").trim();
+        if (note.isEmpty()) throw new ApiException(HttpStatus.BAD_REQUEST, "missing_note");
+        if (note.length() > 1000) note = note.substring(0, 1000);
+        db.sql("UPDATE courses SET status = 'rejected', published = false, review_note = :n WHERE id = :id").param("n", note).param("id", id).update();
+        tell(id, "course_rejected", note);
+        return Json.of(load(id));
+    }
+
+    /** (Re)try creating the meeting link of a session that has none, e.g. when Google was unreachable at save time. */
+    @PostMapping("/sessions/{id}/meeting")
+    public ResponseEntity<Map<String, String>> meeting(@PathVariable String id, HttpServletRequest req) {
+        roles.require(req, "admin");
+        String url = writer.ensureMeeting(id);
+        if (url == null) throw new ApiException(HttpStatus.SERVICE_UNAVAILABLE, "meeting_unavailable");
+        return ResponseEntity.ok(Map.of("url", url));
     }
 
     // ---------------------------------------------------------------------------------------------
@@ -84,88 +126,17 @@ public class AdminCourseController {
         return r.get(0);
     }
 
-    private String save(String id, JsonNode b) {
-        String slug = text(b, "slug");
-        if (!slug.matches("[a-z0-9]+(-[a-z0-9]+)*")) throw new ApiException(HttpStatus.BAD_REQUEST, "invalid_slug");
-        String audience = oneOf(b, "audience", AUDIENCES);
-        String level = oneOf(b, "level", LEVELS);
-        String mentorId = text(b, "mentorId");
-        if (db.sql("SELECT count(*) FROM mentors WHERE id = :m").param("m", mentorId).query(Integer.class).single() == 0)
-            throw new ApiException(HttpStatus.BAD_REQUEST, "unknown_mentor");
-        List<String> langs = new ArrayList<>();
-        for (JsonNode l : b.path("languages")) if ("ar".equals(l.asText()) || "en".equals(l.asText())) langs.add(l.asText());
-        if (langs.isEmpty()) langs.add("ar");
-
-        db.sql("""
-                INSERT INTO courses(id, slug, audience, level, topic, title, subtitle, description, outcomes, modules, mentor_id,
-                  hours, languages, featured, is_new, bestseller, age_range, certificate, cpd_points, published)
-                VALUES (:id, :slug, :aud, :lvl, :topic, :title::jsonb, :sub::jsonb, :descr::jsonb, :outc::jsonb, :modl::jsonb, :mentor,
-                  :hours, string_to_array(:langs, ','), :feat, :isnew, :best, :age, :cert, :cpd, :pub)
-                ON CONFLICT (id) DO UPDATE SET slug = EXCLUDED.slug, audience = EXCLUDED.audience, level = EXCLUDED.level,
-                  topic = EXCLUDED.topic, title = EXCLUDED.title, subtitle = EXCLUDED.subtitle, description = EXCLUDED.description,
-                  outcomes = EXCLUDED.outcomes, modules = EXCLUDED.modules, mentor_id = EXCLUDED.mentor_id, hours = EXCLUDED.hours,
-                  languages = EXCLUDED.languages, featured = EXCLUDED.featured, is_new = EXCLUDED.is_new,
-                  bestseller = EXCLUDED.bestseller, age_range = EXCLUDED.age_range, certificate = EXCLUDED.certificate,
-                  cpd_points = EXCLUDED.cpd_points, published = EXCLUDED.published""")
-                .param("id", id).param("slug", slug).param("aud", audience).param("lvl", level)
-                .param("topic", text(b, "topic")).param("title", writer.bilingual(b, "title", true))
-                .param("sub", writer.bilingual(b, "subtitle", false)).param("descr", writer.bilingual(b, "description", false))
-                .param("outc", array(b, "outcomes")).param("modl", writer.modules(b.path("modules")))
-                .param("mentor", mentorId).param("hours", b.path("hours").asInt(0)).param("langs", String.join(",", langs))
-                .param("feat", b.path("featured").asBoolean(false)).param("isnew", b.path("isNew").asBoolean(false))
-                .param("best", b.path("bestseller").asBoolean(false))
-                .param("age", b.hasNonNull("ageRange") && !b.get("ageRange").asText().isBlank() ? b.get("ageRange").asText() : null)
-                .param("cert", b.path("certificate").asBoolean(true))
-                .param("cpd", b.hasNonNull("cpdPoints") ? b.get("cpdPoints").asInt() : null)
-                .param("pub", b.path("published").asBoolean(true)).update();
-
-        saveOfferings(id, slug, b.path("offerings"));
-        return load(id);
+    private String status(String id) {
+        List<String> s = db.sql("SELECT status FROM courses WHERE id = :id").param("id", id).query(String.class).list();
+        if (s.isEmpty()) throw new ApiException(HttpStatus.NOT_FOUND, "not_found");
+        return s.get(0);
     }
 
-    private void saveOfferings(String courseId, String slug, JsonNode offerings) {
-        List<String> keep = new ArrayList<>();
-        for (JsonNode o : offerings) {
-            String mode = oneOf(o, "mode", MODES);
-            String oid = o.hasNonNull("id") && !o.get("id").asText().isBlank() ? o.get("id").asText() : slug + "-" + mode;
-            long price = o.path("priceHalalas").asLong(-1);
-            if (price < 0) throw new ApiException(HttpStatus.BAD_REQUEST, "invalid_price");
-            keep.add(oid);
-            db.sql("""
-                    INSERT INTO offerings(id, course_id, mode, price_halalas, compare_at_halalas, access_days, cohort_label)
-                    VALUES (:id, :c, :m, :p, :cmp, :acc, :coh::jsonb)
-                    ON CONFLICT (id) DO UPDATE SET mode = EXCLUDED.mode, price_halalas = EXCLUDED.price_halalas,
-                      compare_at_halalas = EXCLUDED.compare_at_halalas, access_days = EXCLUDED.access_days, cohort_label = EXCLUDED.cohort_label
-                    WHERE offerings.course_id = EXCLUDED.course_id""")
-                    .param("id", oid).param("c", courseId).param("m", mode).param("p", price)
-                    .param("cmp", o.hasNonNull("compareAtHalalas") ? o.get("compareAtHalalas").asLong() : null)
-                    .param("acc", o.hasNonNull("accessDays") ? o.get("accessDays").asInt() : null)
-                    .param("coh", o.hasNonNull("cohortLabel") ? o.get("cohortLabel").toString() : null).update();
-            writer.saveSessions(oid, o.path("sessions"));
-        }
-        // Remove offerings that were dropped, unless somebody already bought them.
-        List<String> existing = db.sql("SELECT id FROM offerings WHERE course_id = :c").param("c", courseId).query(String.class).list();
-        for (String oid : existing) {
-            if (keep.contains(oid)) continue;
-            boolean used = db.sql("SELECT (SELECT count(*) FROM order_lines WHERE offering_id = :o) + (SELECT count(*) FROM enrollments WHERE offering_id = :o)")
-                    .param("o", oid).query(Integer.class).single() > 0;
-            if (used) throw new ApiException(HttpStatus.CONFLICT, "offering_in_use");
-            db.sql("DELETE FROM live_sessions WHERE offering_id = :o").param("o", oid).update();
-            db.sql("DELETE FROM offerings WHERE id = :o").param("o", oid).update();
-        }
+    /** E-mail the mentor who owns the course (when their profile is linked to a login). */
+    private void tell(String courseId, String template, String note) {
+        List<Map<String, Object>> r = db.sql("""
+                SELECT u.email, c.slug FROM courses c JOIN mentors m ON m.id = c.mentor_id JOIN users u ON u.id = m.user_id WHERE c.id = :id""")
+                .param("id", courseId).query().listOfRows();
+        if (!r.isEmpty()) messaging.send((String) r.get(0).get("email"), template, Map.of("course", (String) r.get(0).get("slug"), "note", note));
     }
-
-    private static String text(JsonNode n, String f) {
-        String v = n.path(f).asText("").trim();
-        if (v.isEmpty()) throw new ApiException(HttpStatus.BAD_REQUEST, "missing_" + f);
-        return v;
-    }
-
-    private static String oneOf(JsonNode n, String f, Set<String> allowed) {
-        String v = n.path(f).asText("");
-        if (!allowed.contains(v)) throw new ApiException(HttpStatus.BAD_REQUEST, "invalid_" + f);
-        return v;
-    }
-
-    private static String array(JsonNode n, String f) { return n.path(f).isArray() ? n.get(f).toString() : "[]"; }
 }

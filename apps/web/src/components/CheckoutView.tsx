@@ -7,7 +7,7 @@ import { expiryOk, luhn } from "@/lib/validate";
 import { ApiError, isMock, userApi } from "@/lib/api";
 import { money, type Dict } from "@/lib/i18n";
 import { useAuth, useCart } from "@/lib/store";
-import type { Locale, Order, PaymentMethod } from "@/lib/types";
+import type { Locale, Order, PaymentMethod, PromoQuote } from "@/lib/types";
 import { Summary } from "./CartView";
 
 export function CheckoutView({ locale, t }: { locale: Locale; t: Dict }) {
@@ -22,7 +22,22 @@ export function CheckoutView({ locale, t }: { locale: Locale; t: Dict }) {
   const [agree, setAgree] = useState(false);
   const [fe, setFe] = useState<Record<string, string>>({});
   const [order, setOrder] = useState<Order | null>(null);
-  const total = lines.reduce((s, l) => s + l.priceHalalas, 0);
+  const gross = lines.reduce((s, l) => s + l.priceHalalas, 0);
+  const [code, setCode] = useState("");
+  const [quote, setQuote] = useState<PromoQuote | null>(null);
+  const [promoErr, setPromoErr] = useState("");
+  const total = quote ? quote.totalHalalas : gross;
+
+  const applyPromo = async () => {
+    if (!token || !code.trim()) return;
+    setPromoErr("");
+    try { setQuote(await userApi.validatePromo(token, code.trim().toUpperCase(), lines.map((l) => l.offeringId), gross)); toast.success(t.checkout.promoApplied); }
+    catch (x) {
+      const m = t.checkout.promoErrors as Record<string, string>;
+      const msg = x instanceof ApiError ? m[x.code] ?? m.default : m.default;
+      setQuote(null); setPromoErr(msg); toast.error(msg);
+    }
+  };
 
   useEffect(() => { if (ready && !token && !order) router.replace(`/${locale}/login?next=/${locale}/checkout`); }, [ready, token, order, router, locale]);
 
@@ -39,7 +54,7 @@ export function CheckoutView({ locale, t }: { locale: Locale; t: Dict }) {
     setFe(e);
     if (Object.keys(e).length) { toast.warning(t.toast.fixFields); return; }
     setBusy(true);
-    try { const o = await userApi.checkout(token, lines, method); clear(); setOrder(o); toast.success(t.toast.paid); }
+    try { const o = await userApi.checkout(token, lines, method, quote?.code); clear(); setOrder(o); toast.success(t.toast.paid); }
     catch (x) {
       const msg = x instanceof ApiError && x.code === "already_enrolled" ? t.checkout.owned : x instanceof TypeError ? t.toast.network : t.toast.payFailed;
       setErr(msg); toast.error(msg);
@@ -89,7 +104,24 @@ export function CheckoutView({ locale, t }: { locale: Locale; t: Dict }) {
         </section>
         <aside className="card h-fit space-y-4 p-6">
           <h2 className="font-bold text-navy">{t.checkout.summary}</h2>
+          <div>
+            <label className="mb-1.5 block text-sm font-bold text-navy" htmlFor="promo">{t.checkout.promoLabel}</label>
+            {quote ? (
+              <div className="flex items-center justify-between rounded-xl bg-emerald-50 p-3 text-sm text-emerald-800">
+                <span>✓ <b dir="ltr">{quote.code}</b> · {quote.percentOff}%</span>
+                <button type="button" className="font-bold underline" onClick={() => { setQuote(null); setCode(""); }}>{t.checkout.promoRemove}</button>
+              </div>
+            ) : (
+              <div className="flex gap-2">
+                <input id="promo" dir="ltr" className={`input uppercase ${promoErr ? "input-error" : ""}`} placeholder={t.checkout.promoPlaceholder} value={code} aria-invalid={!!promoErr}
+                  onChange={(e) => { setCode(e.target.value); setPromoErr(""); }} onKeyDown={(e) => { if (e.key === "Enter") applyPromo(); }} />
+                <button type="button" className="btn btn-outline" onClick={applyPromo}>{t.checkout.promoApply}</button>
+              </div>
+            )}
+            {promoErr && <p role="alert" className="mt-1.5 text-xs font-medium text-red-700">⚠ {promoErr}</p>}
+          </div>
           <Summary total={total} locale={locale} t={t} />
+          {quote && <p className="flex justify-between text-sm font-bold text-emerald-700"><span>{t.checkout.promoDiscount}</span><span>−{money(quote.discountHalalas, locale)}</span></p>}
           <button className="btn btn-gold w-full" onClick={pay} disabled={busy}>{busy ? t.checkout.processing : `${t.checkout.pay} · ${money(total, locale)}`}</button>
         </aside>
       </div>

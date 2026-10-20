@@ -6,6 +6,7 @@ import { Avatar } from "../Avatar";
 import { num, tr } from "@/lib/i18n";
 import type { AdminMentor } from "@/lib/types";
 import { Bi } from "./Bi";
+import { PhotoField } from "./PhotoField";
 import { useAdmin } from "./AdminShell";
 import { errorText, useLoad, failMsg } from "./hooks";
 import { Badge, Field, PageTitle, Panel, Table } from "./ui";
@@ -36,6 +37,7 @@ export function AdminMentors() {
         {msg && <p role="alert" className="mb-4 rounded-xl bg-red-50 p-3 text-sm text-red-700">{msg.text}</p>}
         <Panel>
           <div className="space-y-4">
+            <PhotoField name={tr(edit.name, locale)} hue={edit.hue} value={edit.imageUrl} onChange={(u) => setEdit({ ...edit, imageUrl: u })} />
             <div className="grid gap-4 md:grid-cols-3">
               <Field label={t.slug}><input className="input" dir="ltr" disabled={!isNew} value={edit.slug} onChange={(e) => setEdit({ ...edit, slug: e.target.value.toLowerCase() })} /></Field>
               <Field label={t.expertise}><input className="input" dir="ltr" value={edit.expertise.join(", ")} onChange={(e) => setEdit({ ...edit, expertise: e.target.value.split(",").map((s) => s.trim()).filter(Boolean) })} /></Field>
@@ -61,7 +63,7 @@ export function AdminMentors() {
         <Table head={[t.name, a.nav.courses, t.rating, t.account.split(" (")[0], ""]}>
           {list.map((m) => (
             <tr key={m.id} className="hover:bg-sand/40">
-              <td className="px-4 py-3"><div className="flex items-center gap-3"><Avatar name={tr(m.name, locale)} hue={m.hue} size={40} /><div><b className="text-navy">{tr(m.name, locale)}</b><div className="text-xs text-mute">{tr(m.title, locale)}</div></div></div></td>
+              <td className="px-4 py-3"><div className="flex items-center gap-3"><Avatar name={tr(m.name, locale)} hue={m.hue} size={40} imageUrl={m.imageUrl} /><div><b className="text-navy">{tr(m.name, locale)}</b><div className="text-xs text-mute">{tr(m.title, locale)}</div></div></div></td>
               <td className="px-4 py-3">{num(m.courseCount, locale)}</td>
               <td className="px-4 py-3">{num(m.rating, locale)} ({num(m.reviewCount, locale)})</td>
               <td className="px-4 py-3">{m.userEmail ? <Badge tone="green">{m.userEmail}</Badge> : <Badge>{t.notLinked}</Badge>}</td>

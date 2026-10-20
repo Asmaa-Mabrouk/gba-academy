@@ -25,4 +25,13 @@ public class Roles {
         if (!ok) throw new ApiException(HttpStatus.FORBIDDEN, "forbidden");
         return id;
     }
+
+    /** Like {@link #require} but any one of the roles is enough (for example admin or mentor). */
+    public UUID requireAny(HttpServletRequest req, String... allowed) {
+        UUID id = AuthInterceptor.require(req);
+        boolean ok = db.sql("SELECT count(*) FROM users WHERE id = :id AND roles && string_to_array(:r, ',')")
+                .param("id", id).param("r", String.join(",", allowed)).query(Integer.class).single() > 0;
+        if (!ok) throw new ApiException(HttpStatus.FORBIDDEN, "forbidden");
+        return id;
+    }
 }

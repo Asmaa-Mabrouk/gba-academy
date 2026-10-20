@@ -1,10 +1,22 @@
 package sa.gba.academy.integrations;
 
-/** PORT: live classroom provider (Zoom / Teams / LiveKit...). See docs/integrations/video.md. */
-public interface LiveVideo {
-    /** Create the room for a session and return its join URL. */
-    String createRoom(String sessionId, String title, java.time.Instant startsAt, int durationMin);
+import java.time.Instant;
 
-    /** Per-learner join link. */
-    String joinLink(String sessionId, String userId);
+/**
+ * PORT: live classroom provider (Google Meet / Zoom / Teams / LiveKit...). See docs/integrations/video.md.
+ * The API stores the returned URL on the session (`live_sessions.join_url`) and hands it only to the mentor, admins
+ * and learners enrolled in that session's offering.
+ */
+public interface LiveVideo {
+    /** What the provider created. `ref` identifies the meeting for later updates or cancellation (may be null). */
+    record Room(String url, String provider, String ref) {}
+
+    /** Create the meeting for a session. Throws if the provider cannot be reached; callers keep the session and retry later. */
+    Room createMeeting(String sessionId, String title, Instant startsAt, int durationMin);
+
+    /** The session moved or was renamed. Default: nothing to do. */
+    default void updateMeeting(String ref, String title, Instant startsAt, int durationMin) {}
+
+    /** The session was deleted. Default: nothing to do. */
+    default void cancelMeeting(String ref) {}
 }

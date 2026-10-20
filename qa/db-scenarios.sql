@@ -59,3 +59,37 @@ SET enable_seqscan = off;
 SELECT pg_temp.assert((SELECT count(*) FROM courses c WHERE c.title::text ILIKE '%project%') >= 1, 'trigram search returns rows');
 SELECT pg_temp.assert(EXISTS (SELECT 1 FROM pg_class WHERE relname = 'idx_courses_title_trgm'), 'trigram index usable');
 RESET enable_seqscan;
+
+-- ===== V6: authoring, approval, promo codes =====
+SELECT pg_temp.assert((SELECT count(*) FROM courses WHERE status = 'approved') = 13, 'existing courses stay approved');
+SELECT pg_temp.expect_fail($$UPDATE courses SET status = 'archived' WHERE id = (SELECT id FROM courses LIMIT 1)$$, 'unknown course status');
+SELECT pg_temp.expect_fail($$UPDATE courses SET status = 'pending' WHERE id = (SELECT id FROM courses LIMIT 1)$$, 'a published course cannot be moved out of approved');
+UPDATE courses SET published = false, status = 'pending' WHERE id = (SELECT id FROM courses ORDER BY id LIMIT 1);
+SELECT pg_temp.expect_fail($$UPDATE courses SET published = true WHERE status = 'pending'$$, 'cannot publish an unapproved course');
+UPDATE courses SET status = 'approved', published = true WHERE status = 'pending';
+
+SELECT pg_temp.expect_fail($$UPDATE offerings SET capacity = 0 WHERE id = (SELECT id FROM offerings LIMIT 1)$$, 'capacity must be positive');
+SELECT pg_temp.expect_fail($$UPDATE offerings SET capacity = 8, min_learners = 10 WHERE id = (SELECT id FROM offerings LIMIT 1)$$, 'minimum to run cannot exceed capacity');
+UPDATE offerings SET capacity = 25, min_learners = 10 WHERE id = (SELECT id FROM offerings WHERE mode <> 'recorded' LIMIT 1);
+SELECT pg_temp.assert((SELECT count(*) FROM offerings WHERE mode <> 'recorded' AND capacity IS NULL AND EXISTS (SELECT 1 FROM live_sessions s WHERE s.offering_id = offerings.id)) = 0, 'live offerings with sessions got a capacity');
+
+SELECT pg_temp.expect_fail($$UPDATE live_sessions SET meeting_provider = 'skype' WHERE id = (SELECT id FROM live_sessions LIMIT 1)$$, 'unknown meeting provider');
+UPDATE live_sessions SET meeting_provider = 'google_meet', join_url = 'https://meet.google.com/abc-defg-hij' WHERE id = (SELECT id FROM live_sessions LIMIT 1);
+
+INSERT INTO promo_codes(code, percent_off, max_uses, expires_at) VALUES ('WELCOME10', 10, 2, now() + interval '30 days');
+SELECT pg_temp.expect_fail($$INSERT INTO promo_codes(code, percent_off) VALUES ('WELCOME10', 5)$$, 'promo code must be unique');
+SELECT pg_temp.expect_fail($$INSERT INTO promo_codes(code, percent_off) VALUES ('lower', 5)$$, 'promo code must be upper case');
+SELECT pg_temp.expect_fail($$INSERT INTO promo_codes(code, percent_off) VALUES ('BAD CODE', 5)$$, 'promo code rejects spaces');
+SELECT pg_temp.expect_fail($$INSERT INTO promo_codes(code, percent_off) VALUES ('ZERO', 0)$$, 'discount must be at least 1 percent');
+SELECT pg_temp.expect_fail($$INSERT INTO promo_codes(code, percent_off) VALUES ('HUGE', 101)$$, 'discount cannot exceed 100 percent');
+SELECT pg_temp.expect_fail($$UPDATE promo_codes SET used_count = 3 WHERE code = 'WELCOME10'$$, 'promo cannot be used more than max_uses');
+UPDATE promo_codes SET used_count = used_count + 1 WHERE code = 'WELCOME10' AND (max_uses IS NULL OR used_count < max_uses);
+SELECT pg_temp.assert((SELECT used_count FROM promo_codes WHERE code = 'WELCOME10') = 1, 'atomic use counter works');
+
+INSERT INTO promo_redemptions(promo_id, user_id, order_id, discount_halalas) SELECT (SELECT id FROM promo_codes WHERE code = 'WELCOME10'), uid, (SELECT id FROM orders WHERE number = 'T-3'), 2990 FROM ctx;
+SELECT pg_temp.expect_fail($$INSERT INTO promo_redemptions(promo_id, user_id, order_id, discount_halalas) SELECT (SELECT id FROM promo_codes WHERE code = 'WELCOME10'), uid, (SELECT id FROM orders WHERE number = 'T-3'), 1 FROM ctx$$, 'a learner can use a promo code once');
+SELECT pg_temp.expect_fail($$UPDATE orders SET discount_halalas = -1 WHERE number = 'T-3'$$, 'negative discount');
+
+INSERT INTO media_files(kind, original_name, content_type, size_bytes, storage_key, uploaded_by) SELECT 'image', 'a.png', 'image/png', 10, 'k1', uid FROM ctx;
+SELECT pg_temp.expect_fail($$INSERT INTO media_files(kind, original_name, content_type, size_bytes, storage_key, uploaded_by) SELECT 'audio', 'a.mp3', 'audio/mpeg', 10, 'k2', uid FROM ctx$$, 'unknown media kind');
+SELECT pg_temp.expect_fail($$INSERT INTO media_files(kind, original_name, content_type, size_bytes, storage_key, uploaded_by) SELECT 'image', 'b.png', 'image/png', 10, 'k1', uid FROM ctx$$, 'storage key is unique');

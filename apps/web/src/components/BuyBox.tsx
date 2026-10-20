@@ -59,6 +59,13 @@ export function BuyBox({ course, locale, t }: { course: Course; locale: Locale; 
         {course.ageRange && <p>▸ {t.course.ageRange}: {course.ageRange}</p>}
         {course.audience === "kids" && <p className="text-xs text-mute">{t.course.guardianNote}</p>}
       </div>
+      {o.capacity ? (
+        <div className="border-t border-navy/10 p-6 text-sm">
+          <div className="mb-1 flex justify-between font-bold text-navy"><span>{num(o.enrolled ?? 0, locale)} {t.course.cohortOf} {num(o.capacity, locale)} {t.course.cohortBooked}</span>{(o.enrolled ?? 0) >= o.capacity && <span className="text-red-600">{t.course.cohortFull}</span>}</div>
+          <div className="h-2 overflow-hidden rounded-full bg-navy/10" role="progressbar" aria-valuemin={0} aria-valuemax={o.capacity} aria-valuenow={o.enrolled ?? 0}><div className="h-full rounded-full bg-gold" style={{ width: `${Math.min(100, ((o.enrolled ?? 0) / o.capacity) * 100)}%` }} /></div>
+          {o.minLearners ? <p className="mt-2 text-xs text-mute">{(o.enrolled ?? 0) >= o.minLearners ? t.course.cohortRunning : t.course.cohortRunsAt.replace("{n}", num(o.minLearners, locale))}</p> : null}
+        </div>
+      ) : null}
       {o.sessions.length > 0 && (
         <div className="border-t border-navy/10 p-6">
           <p className="mb-3 font-bold text-navy">{t.course.nextSessions}{o.cohortLabel ? ` · ${tr(o.cohortLabel, locale)}` : ""}</p>

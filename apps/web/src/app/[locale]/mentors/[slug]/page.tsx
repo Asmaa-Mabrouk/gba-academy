@@ -16,7 +16,7 @@ export default async function MentorPage({ params }: { params: Promise<{ locale:
     <>
       <section className="band py-14 text-navy">
         <div className="container-x flex flex-col items-start gap-6 sm:flex-row sm:items-center">
-          <Avatar name={tr(m.name, locale)} hue={m.hue} size={120} />
+          <Avatar name={tr(m.name, locale)} hue={m.hue} size={120} imageUrl={m.imageUrl} />
           <div>
             <h1 className="text-4xl font-black gold-text">{tr(m.name, locale)}</h1>
             <p className="mt-1 text-navy/70">{tr(m.title, locale)}</p>

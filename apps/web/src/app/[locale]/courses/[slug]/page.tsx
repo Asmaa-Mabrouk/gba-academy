@@ -39,7 +39,7 @@ export default async function CoursePage({ params }: { params: Promise<{ locale:
             <span>{t.course.languages}: {course.languages.map((l) => (l === "ar" ? "العربية" : "English")).join(" · ")}</span>
           </div>
           <Link href={`/${locale}/mentors/${mentor.slug}`} className="mt-5 inline-flex items-center gap-3 rounded-full bg-white/10 py-1.5 pe-5 ps-1.5 hover:bg-white/15">
-            <Avatar name={tr(mentor.name, locale)} hue={mentor.hue} size={38} /><span className="font-medium">{tr(mentor.name, locale)}</span>
+            <Avatar name={tr(mentor.name, locale)} hue={mentor.hue} size={38} imageUrl={mentor.imageUrl} /><span className="font-medium">{tr(mentor.name, locale)}</span>
           </Link>
         </div>
       </section>
@@ -78,7 +78,7 @@ export default async function CoursePage({ params }: { params: Promise<{ locale:
             </div>
           </section>
           <section className="card flex flex-col gap-4 p-6 sm:flex-row sm:items-center">
-            <Avatar name={tr(mentor.name, locale)} hue={mentor.hue} size={80} />
+            <Avatar name={tr(mentor.name, locale)} hue={mentor.hue} size={80} imageUrl={mentor.imageUrl} />
             <div>
               <p className="text-xs font-bold uppercase tracking-wide text-gold-deep">{t.course.mentor}</p>
               <h3 className="text-xl font-black text-navy">{tr(mentor.name, locale)}</h3>

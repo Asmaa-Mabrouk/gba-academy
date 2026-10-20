@@ -21,7 +21,7 @@ export function AdminOrders() {
               <td className="px-4 py-3">{o.lines.map((l, i) => <div key={i}>{tr(l.courseTitle, locale)} <span className="text-xs text-mute">({a.courses.modes[l.mode]})</span></div>)}</td>
               <td className="px-4 py-3">{o.paymentMethod}</td>
               <td className="px-4 py-3">{money(o.vatHalalas, locale)}</td>
-              <td className="px-4 py-3 font-bold">{money(o.totalHalalas, locale)}</td>
+              <td className="px-4 py-3 font-bold">{money(o.totalHalalas, locale)}{o.promoCode && <div className="text-xs font-normal text-gold-deep"><span dir="ltr">{o.promoCode}</span> · −{money(o.discountHalalas ?? 0, locale)}</div>}</td>
               <td className="px-4 py-3"><Badge tone={o.status === "paid" ? "green" : o.status === "failed" ? "red" : "sand"}>{t.statuses[o.status]}</Badge></td>
               <td className="px-4 py-3 text-mute">{dateTime(o.createdAt, locale)}</td>
             </tr>

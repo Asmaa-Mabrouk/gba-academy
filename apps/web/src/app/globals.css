@@ -65,6 +65,11 @@ body { font-family: "Tajawal", "Roboto", system-ui, sans-serif; background: var(
 .btn-outline:hover { background: rgb(11 19 39 / .05); }
 .input { width: 100%; border: 1.5px solid rgb(11 19 39 / .15); border-radius: .85rem; padding: .8rem 1rem; background: #fff; transition: border-color .2s, box-shadow .2s; }
 .input:focus { outline: none; border-color: var(--color-gold); box-shadow: 0 0 0 4px rgb(196 156 62 / .2); }
+/* Dropdowns: our own chevron with room on the inline-end side, in both reading directions (the native arrow sat flush on the border). */
+select.input { -webkit-appearance: none; appearance: none; cursor: pointer; padding-inline-end: 3rem; background-repeat: no-repeat; background-size: 1rem; background-position: right 1.15rem center;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%230b1327' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E"); }
+[dir="rtl"] select.input { background-position: left 1.15rem center; }
+select.input:disabled { opacity: .6; cursor: not-allowed; }
 .input-error { border-color: #dc2626 !important; background: #fef2f2; }
 .input-error:focus { box-shadow: 0 0 0 4px rgb(220 38 38 / .15) !important; }
 .chip { display: inline-flex; align-items: center; gap: .35rem; border-radius: 999px; padding: .2rem .7rem; font-size: .75rem; font-weight: 700; }
@@ -100,3 +105,12 @@ body { font-family: "Tajawal", "Roboto", system-ui, sans-serif; background: var(
 .btn-shine { position: relative; overflow: hidden; }
 .btn-shine::after { content: ""; position: absolute; inset: 0; background: linear-gradient(110deg, transparent 35%, rgb(255 255 255 / .55) 50%, transparent 65%); transform: translateX(-120%); animation: shine 3.8s ease-in-out 1.2s infinite; }
 @keyframes shine { 0%, 55% { transform: translateX(-120%) } 100% { transform: translateX(120%) } }
+
+/* Lesson step bubbles and the drop zone of the course editor */
+.bubble { display: inline-flex; height: 2.25rem; width: 2.25rem; align-items: center; justify-content: center; border-radius: 999px; border: 2px solid rgb(11 19 39 / .18); background: #fff; font-size: .85rem; font-weight: 800; color: var(--color-navy); transition: all .25s; }
+.bubble-current { background: var(--color-navy); border-color: var(--color-navy); color: var(--color-gold-light); box-shadow: 0 0 0 4px rgb(196 156 62 / .25); transform: scale(1.08); }
+.bubble-done { background: var(--color-gold); border-color: var(--color-gold); color: #fff; }
+.bubble-line { height: 2px; flex: 1; min-width: 1rem; background: rgb(11 19 39 / .12); transition: background .25s; }
+.bubble-line-done { background: var(--color-gold); }
+.dropzone { border: 2px dashed rgb(11 19 39 / .22); border-radius: 1.1rem; background: rgb(244 238 225 / .5); transition: all .2s; cursor: pointer; }
+.dropzone:hover, .dropzone-over { border-color: var(--color-gold); background: rgb(196 156 62 / .1); }

@@ -16,7 +16,7 @@ export default async function Mentors({ params }: { params: Promise<{ locale: st
       <div className="container-x grid gap-6 py-10 sm:grid-cols-2 lg:grid-cols-3">
         {mentors.map((m) => (
           <Link key={m.id} href={`/${locale}/mentors/${m.slug}`} className="card card-hover p-6">
-            <Avatar name={tr(m.name, locale)} hue={m.hue} size={84} />
+            <Avatar name={tr(m.name, locale)} hue={m.hue} size={84} imageUrl={m.imageUrl} />
             <h2 className="mt-4 text-xl font-black text-navy">{tr(m.name, locale)}</h2>
             <p className="text-sm text-mute">{tr(m.title, locale)}</p>
             <p className="mt-3 line-clamp-3 text-sm leading-relaxed">{tr(m.bio, locale)}</p>

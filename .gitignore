@@ -5,3 +5,7 @@ target/
 .env.local
 *.log
 .DS_Store
+
+# uploaded files (local storage adapter)
+services/api/data/
+data/uploads/

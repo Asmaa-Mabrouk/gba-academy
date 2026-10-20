@@ -24,7 +24,7 @@ public class AdminPeopleController {
             SELECT json_build_object('id',m.id,'slug',m.slug,'name',m.name,'title',m.title,'bio',m.bio,
               'expertise',m.expertise,'languages',m.languages,'rating',m.rating,'reviewCount',m.review_count,
               'courseCount',(SELECT count(*) FROM courses c WHERE c.mentor_id = m.id),'learners',m.learners,'hue',m.hue,
-              'userId',m.user_id,'userEmail',u.email)::text
+              'userId',m.user_id,'userEmail',u.email,'imageUrl',m.image_url)::text
             FROM mentors m LEFT JOIN users u ON u.id = m.user_id""";
 
     private final JdbcClient db;
@@ -73,13 +73,15 @@ public class AdminPeopleController {
             db.sql("UPDATE mentors SET user_id = NULL WHERE user_id = :u AND id <> :id").param("u", userId).param("id", id).update();
         }
         db.sql("""
-                INSERT INTO mentors(id, slug, name, title, bio, expertise, languages, hue, user_id)
-                VALUES (:id, :slug, :name::jsonb, :title::jsonb, :bio::jsonb, string_to_array(:exp, ','), string_to_array(:langs, ','), :hue, :u)
+                INSERT INTO mentors(id, slug, name, title, bio, expertise, languages, hue, user_id, image_url)
+                VALUES (:id, :slug, :name::jsonb, :title::jsonb, :bio::jsonb, string_to_array(:exp, ','), string_to_array(:langs, ','), :hue, :u, :img)
                 ON CONFLICT (id) DO UPDATE SET slug = EXCLUDED.slug, name = EXCLUDED.name, title = EXCLUDED.title, bio = EXCLUDED.bio,
-                  expertise = EXCLUDED.expertise, languages = EXCLUDED.languages, hue = EXCLUDED.hue, user_id = EXCLUDED.user_id""")
+                  expertise = EXCLUDED.expertise, languages = EXCLUDED.languages, hue = EXCLUDED.hue, user_id = EXCLUDED.user_id,
+                  image_url = CASE WHEN :hasImg THEN EXCLUDED.image_url ELSE mentors.image_url END""")
                 .param("id", id).param("slug", text(b, "slug")).param("name", bilingual(b, "name")).param("title", bilingual(b, "title"))
                 .param("bio", bilingual(b, "bio")).param("exp", join(b.path("expertise"), null))
-                .param("langs", join(b.path("languages"), Set.of("ar", "en"))).param("hue", b.path("hue").asInt(40)).param("u", userId).update();
+                .param("langs", join(b.path("languages"), Set.of("ar", "en"))).param("hue", b.path("hue").asInt(40)).param("u", userId)
+                .param("img", imageUrl(b)).param("hasImg", b.has("imageUrl")).update();
         if (userId != null)
             db.sql("UPDATE users SET roles = array_append(roles, 'mentor') WHERE id = :u AND NOT ('mentor' = ANY(roles))").param("u", userId).update();
         return db.sql(MENTOR_SELECT + " WHERE m.id = :id").param("id", id).query(String.class).single();
@@ -121,6 +123,14 @@ public class AdminPeopleController {
         o.put("ar", ar.isEmpty() ? en : ar);
         o.put("en", en.isEmpty() ? ar : en);
         return o.toString();
+    }
+
+    /** Photo URL: an uploaded file of this API or an https link; empty or missing clears it. */
+    public static String imageUrl(JsonNode b) {
+        String u = b.hasNonNull("imageUrl") ? b.get("imageUrl").asText("").trim() : "";
+        if (u.isEmpty()) return null;
+        if (!(u.startsWith("/api/v1/files/") || u.matches("https://\\S+"))) throw new ApiException(HttpStatus.BAD_REQUEST, "invalid_image_url");
+        return u;
     }
 
     private static String join(JsonNode arr, Set<String> allowed) {

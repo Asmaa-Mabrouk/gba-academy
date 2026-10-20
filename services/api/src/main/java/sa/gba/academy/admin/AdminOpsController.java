@@ -35,6 +35,7 @@ public class AdminOpsController {
                   'users',(SELECT count(*) FROM users),
                   'courses',(SELECT count(*) FROM courses),
                   'publishedCourses',(SELECT count(*) FROM courses WHERE published),
+                  'pendingCourses',(SELECT count(*) FROM courses WHERE status = 'pending'),
                   'mentors',(SELECT count(*) FROM mentors),
                   'enrollments',(SELECT count(*) FROM enrollments),
                   'orders',(SELECT count(*) FROM orders WHERE status = 'paid'),
@@ -52,6 +53,7 @@ public class AdminOpsController {
         return Json.array(db.sql("""
                 SELECT json_build_object('id',o.id,'number',o.number,'status',o.status,'totalHalalas',o.total_halalas,
                   'vatHalalas',o.vat_halalas,'paymentMethod',o.payment_method,'invoiceNumber',o.invoice_number,
+                  'promoCode',o.promo_code,'discountHalalas',o.discount_halalas,
                   'createdAt',o.created_at,'userName',u.full_name,'userEmail',u.email,
                   'lines',(SELECT coalesce(json_agg(json_build_object('courseSlug',c.slug,'courseTitle',c.title,'mode',f.mode,
                        'priceHalalas',l.price_halalas)),'[]'::json)

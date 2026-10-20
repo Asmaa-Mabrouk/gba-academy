@@ -33,4 +33,5 @@ jobs:
     env: { PGHOST: localhost, PGPORT: "5432", PGUSER: postgres, PGPASSWORD: postgres }
     steps:
       - uses: actions/checkout@v4
+      - run: pip install psycopg2-binary
       - run: ./scripts/db-check.sh

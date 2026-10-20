@@ -10,6 +10,9 @@ spring:
       connection-timeout: 5000   # fail fast instead of piling up requests when the database is saturated
       max-lifetime: 1500000
   flyway.enabled: true
+  servlet.multipart:
+    max-file-size: 500MB        # the largest allowed upload (a lesson video); smaller limits per file type are enforced in FileController
+    max-request-size: 510MB
   threads.virtual.enabled: true  # Java 21 virtual threads: blocking JDBC calls no longer pin scarce platform threads
   lifecycle.timeout-per-shutdown-phase: 25s
 server:
@@ -23,6 +26,14 @@ management:
   endpoints.web.exposure.include: health,info
   endpoint.health.probes.enabled: true   # /actuator/health/liveness and /readiness for load balancers
 academy:
+  storage:
+    type: local                  # local | (s3, azure: write a FileStorage adapter)
+    dir: ${UPLOAD_DIR:./data/uploads}   # back this folder up; in production use a persistent volume or object storage
+  google:                      # only used when integrations.live is google-meet (docs/integrations/video.md)
+    client-id: ${GOOGLE_CLIENT_ID:}
+    client-secret: ${GOOGLE_CLIENT_SECRET:}
+    refresh-token: ${GOOGLE_REFRESH_TOKEN:}
+    calendar-id: ${GOOGLE_CALENDAR_ID:primary}
   jwt-secret: ${JWT_SECRET:change-me-change-me-change-me-change-me-0123}   # at least 32 chars; set a real secret in production
   jwt-ttl-minutes: 1440
   admin-email: ${ADMIN_EMAIL:}          # first admin account, created at start-up when set
@@ -32,5 +43,5 @@ academy:
     payment: fake
     einvoice: fake
     video: fake
-    live: fake
+    live: fake            # fake | google-meet
     messaging: fake

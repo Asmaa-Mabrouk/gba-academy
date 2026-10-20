@@ -15,3 +15,9 @@
 | D11 | Trigram (`pg_trgm`) indexes for catalogue search before adding a search engine | Keeps one datastore until the catalogue is far larger |
 | D12 | Virtual threads, graceful shutdown, small Hikari pool, health probes | Cheap scale-out for a blocking JDBC app on Java 21 |
 | D13 | CI runs web build, `mvn test` and a real PostgreSQL migration check (`scripts/db-check.sh`) | Migrations and constraints are tested against the real engine on every change |
+| D14 | Mentors create courses as drafts; an admin approves before anything is public (`status` plus a `published => approved` constraint) | Quality control without blocking mentors; the rule holds even if code changes |
+| D15 | Capacity lives on the offering (`capacity`, `min_learners`) and is checked under a row lock at purchase | A live cohort of 10 must never sell 11, even with simultaneous buyers |
+| D16 | Meeting links are created by the `LiveVideo` port (Google Meet adapter) and shown only to the mentor and enrolled learners | One click for staff, no links in public JSON, vendor replaceable |
+| D17 | Uploads go through the `FileStorage` port; files are type-checked by content and served with an access check | Paid video must not be a public URL; storage can move to S3 later |
+| D18 | Promo codes are a percentage of the VAT-inclusive total, one use per learner, validated and redeemed inside the order transaction | Simple for admins, no double use under load |
+| D19 | Public course JSON omits lesson videos and files; enrolled learners fetch them from `/me/enrollments/{slug}/content` | The catalogue is public and cached; paid content is not |

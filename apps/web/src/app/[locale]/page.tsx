@@ -157,7 +157,7 @@ export default async function Home({ params }: { params: Promise<{ locale: strin
         <div className="mt-8 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {mentors.map((m) => (
             <Link key={m.id} href={L(`/mentors/${m.slug}`)} className="card card-hover flex min-w-0 items-center gap-4 p-5">
-              <Avatar name={tr(m.name, locale)} hue={m.hue} size={64} />
+              <Avatar name={tr(m.name, locale)} hue={m.hue} size={64} imageUrl={m.imageUrl} />
               <div className="min-w-0">
                 <p className="font-bold text-navy">{tr(m.name, locale)}</p>
                 <p className="truncate text-sm text-mute">{tr(m.title, locale)}</p>

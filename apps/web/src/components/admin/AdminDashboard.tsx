@@ -19,6 +19,11 @@ export function AdminDashboard() {
   return (
     <>
       <PageTitle>{a.nav.dashboard}</PageTitle>
+      {(s.pendingCourses ?? 0) > 0 && (
+        <Link href={`/${locale}/admin/courses`} className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-2xl border-2 border-gold bg-gold/10 p-4 font-bold text-navy hover:bg-gold/20">
+          <span>⏳ {d.pending}: {num(s.pendingCourses ?? 0, locale)}</span><span className="text-sm text-gold-deep">{d.reviewNow} →</span>
+        </Link>
+      )}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {cards.map(([l, v, sub]) => (
           <div key={l} className="card p-5"><p className="text-sm text-mute">{l}</p><p className="mt-1 text-2xl font-black text-navy">{v}</p>{sub && <p className="text-xs text-mute">{sub}</p>}</div>
@@ -36,6 +41,7 @@ export function AdminDashboard() {
           <div className="flex flex-wrap gap-3">
             <Link href={`/${locale}/admin/courses/new`} className="btn btn-gold">{d.newCourse}</Link>
             <Link href={`/${locale}/admin/mentors?new=1`} className="btn btn-outline">{d.newMentor}</Link>
+            <Link href={`/${locale}/admin/promos`} className="btn btn-outline">{a.nav.promos}</Link>
             <Link href={`/${locale}/admin/orders`} className="btn btn-outline">{a.nav.orders}</Link>
           </div>
         </Panel>

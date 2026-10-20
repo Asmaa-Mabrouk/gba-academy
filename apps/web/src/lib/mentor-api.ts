@@ -12,6 +12,9 @@ export interface MentorApi {
   courses(t: string): Promise<Course[]>;
   course(t: string, id: string): Promise<Course | null>;
   saveCourse(t: string, c: Course): Promise<Course>;
+  createCourse(t: string, c: Course): Promise<Course>;
+  submitCourse(t: string, id: string): Promise<Course>;
+  withdrawCourse(t: string, id: string): Promise<Course>;
   sessions(t: string): Promise<MentorSession[]>;
   joinUrl(t: string, sessionId: string): Promise<string>;
   learners(t: string): Promise<MentorLearner[]>;
@@ -26,6 +29,9 @@ const httpMentor: MentorApi = {
   courses: (t) => http("/mentor/courses", { token: t }),
   course: (t, id) => http<Course>(`/mentor/courses/${id}`, { token: t }).catch(() => null),
   saveCourse: (t, c) => http(`/mentor/courses/${c.id}`, { method: "PUT", token: t, body: JSON.stringify(c) }),
+  createCourse: (t, c) => http("/mentor/courses", { method: "POST", token: t, body: JSON.stringify(c) }),
+  submitCourse: (t, id) => http(`/mentor/courses/${id}/submit`, { method: "POST", token: t }),
+  withdrawCourse: (t, id) => http(`/mentor/courses/${id}/withdraw`, { method: "POST", token: t }),
   sessions: (t) => http("/mentor/sessions", { token: t }),
   joinUrl: async (t, id) => (await http<{ url: string }>(`/mentor/sessions/${id}/join`, { token: t })).url,
   learners: (t) => http("/mentor/learners", { token: t }),
@@ -44,11 +50,21 @@ function who(t: string): AdminMentor {
 const mine = (t: string) => { const m = who(t); return getCourses().filter((c) => c.mentorId === m.id); };
 const titleOf = (slug: string): Bilingual => getCourses().find((c) => c.slug === slug)?.title ?? { ar: slug, en: slug };
 
+/** Give every module, lesson, offering and session an id, as the server does. */
+function fillIds(c: Course): Course {
+  const id = (p: string) => `${p}-${Math.random().toString(36).slice(2, 8)}`;
+  return {
+    ...c,
+    modules: c.modules.map((m) => ({ ...m, id: m.id || id("m"), lessons: m.lessons.map((l) => ({ ...l, id: l.id || id("l") })) })),
+    offerings: c.offerings.map((o) => ({ ...o, id: o.id || `${c.slug}-${o.mode}`, sessions: o.sessions.map((s) => ({ ...s, id: s.id || id("s"), seatsLeft: s.seatsLeft ?? s.seats })) })),
+  };
+}
+
 const mockMentor: MentorApi = {
   async me(t) { return who(t); },
   async saveMe(t, m) {
     const cur = who(t);
-    const next = { ...cur, name: m.name, title: m.title, bio: m.bio, expertise: m.expertise, languages: m.languages, hue: m.hue };
+    const next = { ...cur, name: m.name, title: m.title, bio: m.bio, expertise: m.expertise, languages: m.languages, hue: m.hue, imageUrl: m.imageUrl ?? null };
     write(MK.mentors, getMentors().map((x) => (x.id === cur.id ? next : x)));
     return next;
   },
@@ -66,23 +82,60 @@ const mockMentor: MentorApi = {
   },
   async courses(t) { return mine(t); },
   async course(t, id) { return mine(t).find((c) => c.id === id) ?? null; },
+  async createCourse(t, c) {
+    const m = who(t);
+    if (getCourses().some((x) => x.slug === c.slug)) throw new ApiError("slug_exists");
+    const full: Course = { ...fillIds(c), id: `c-${c.slug}`, mentorId: m.id, status: "draft", published: false, featured: false, isNew: false, bestseller: false, cpdPoints: null, rating: 0, reviewCount: 0, learners: 0 };
+    write(MK.courses, [...getCourses(), full]);
+    return full;
+  },
   async saveCourse(t, c) {
     const cur = mine(t).find((x) => x.id === c.id);
     if (!cur) throw new ApiError("not_found");
-    // Only content and sessions: price, slug, audience, publishing and offerings are the admin's.
-    const next: Course = {
-      ...cur, title: c.title, subtitle: c.subtitle, description: c.description, outcomes: c.outcomes, hours: c.hours, languages: c.languages, ageRange: c.ageRange,
-      modules: c.modules.map((m, i) => ({ ...m, id: m.id || `m${i + 1}-${Math.random().toString(36).slice(2, 6)}`, lessons: m.lessons.map((l) => ({ ...l, id: l.id || `l-${Math.random().toString(36).slice(2, 8)}` })) })),
-      offerings: cur.offerings.map((o) => {
-        const sent = c.offerings.find((x) => x.id === o.id);
-        return o.mode === "recorded" || !sent ? o : { ...o, sessions: sent.sessions.map((s) => ({ ...s, id: s.id || `s-${Math.random().toString(36).slice(2, 8)}`, seatsLeft: s.seatsLeft ?? s.seats })) };
-      }),
-    };
+    if (cur.status === "pending") throw new ApiError("pending_review");
+    let next: Course;
+    if (cur.status === "draft" || cur.status === "rejected") {
+      // Still being prepared: everything is editable, including the proposed offerings and prices.
+      next = { ...fillIds(c), id: cur.id, slug: cur.slug, mentorId: cur.mentorId, status: cur.status, published: false, featured: false, isNew: false, bestseller: false, cpdPoints: null, reviewNote: cur.reviewNote };
+    } else {
+      // Live: only content and sessions. Price, slug, audience, publishing and offerings are the admin's.
+      next = {
+        ...cur, title: c.title, subtitle: c.subtitle, description: c.description, outcomes: c.outcomes, hours: c.hours, languages: c.languages, ageRange: c.ageRange,
+        materials: c.materials, quizzes: c.quizzes ?? cur.quizzes, modules: fillIds(c).modules,
+        offerings: cur.offerings.map((o) => {
+          const sent = c.offerings.find((x) => x.id === o.id);
+          return o.mode === "recorded" || !sent ? o : { ...o, sessions: sent.sessions.map((s) => ({ ...s, id: s.id || `s-${Math.random().toString(36).slice(2, 8)}`, seatsLeft: s.seatsLeft ?? s.seats })) };
+        }),
+      };
+    }
     write(MK.courses, getCourses().map((x) => (x.id === next.id ? next : x)));
     return next;
   },
+  async submitCourse(t, id) {
+    const cur = mine(t).find((x) => x.id === id);
+    if (!cur) throw new ApiError("not_found");
+    if (cur.status !== "draft" && cur.status !== "rejected") throw new ApiError("not_submittable");
+    const lessons = cur.modules.flatMap((m) => m.lessons);
+    if (!cur.title.ar && !cur.title.en) throw new ApiError("incomplete_course");
+    if (lessons.length === 0 || cur.offerings.length === 0) throw new ApiError("incomplete_course");
+    for (const l of lessons.filter((x) => x.kind === "quiz")) {
+      const q = cur.quizzes?.[l.id];
+      if (!q || q.questions.length === 0 || q.questions.some((x) => x.options.length < 2 || !x.correctId)) throw new ApiError("quiz_incomplete");
+    }
+    const next: Course = { ...cur, status: "pending", submittedAt: new Date().toISOString(), reviewNote: null };
+    write(MK.courses, getCourses().map((x) => (x.id === id ? next : x)));
+    return next;
+  },
+  async withdrawCourse(t, id) {
+    const cur = mine(t).find((x) => x.id === id);
+    if (!cur) throw new ApiError("not_found");
+    if (cur.status !== "pending") throw new ApiError("not_pending");
+    const next: Course = { ...cur, status: "draft" };
+    write(MK.courses, getCourses().map((x) => (x.id === id ? next : x)));
+    return next;
+  },
   async sessions(t) {
-    return mine(t).flatMap((c) => c.offerings.flatMap((o) => o.sessions.map((s) => ({ id: s.id, startsAt: s.startsAt, durationMin: s.durationMin, seats: s.seats, enrolled: s.seats - s.seatsLeft, title: s.title, courseSlug: c.slug, courseTitle: c.title, mode: o.mode }))))
+    return mine(t).flatMap((c) => c.offerings.flatMap((o) => o.sessions.map((s) => ({ id: s.id, startsAt: s.startsAt, durationMin: s.durationMin, seats: s.seats, enrolled: s.seats - s.seatsLeft, title: s.title, courseSlug: c.slug, courseTitle: c.title, mode: o.mode, joinUrl: s.joinUrl ?? null, meetingProvider: s.meetingProvider ?? null }))))
       .filter((s) => +new Date(s.startsAt) > Date.now() - 864e5).sort((a, b) => +new Date(a.startsAt) - +new Date(b.startsAt));
   },
   async joinUrl(_t, id) { return `about:blank#mock-room-${id}`; },

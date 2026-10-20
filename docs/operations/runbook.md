@@ -17,6 +17,9 @@ See the root README. Reset the database: drop and recreate `gba`; Flyway rebuild
 ## Deploy
 Build the two Docker images (`apps/web/Dockerfile`, `services/api/Dockerfile`), run them behind HTTPS with a managed PostgreSQL. Back up the database daily. Remove `V2__sample_data.sql` effects in production (or move sample data to a dev-only Flyway location) before loading real courses.
 
+## Uploaded files
+Uploads (lesson videos, PDFs, mentor photos) are stored in `academy.storage.dir` (`./data/uploads` by default, env `UPLOAD_DIR`). In production mount a persistent volume there and include it in backups together with the database; a restored database without its files shows broken videos. Upload limits: image 5 MB, document 25 MB, video 500 MB (also set the same limit at the reverse proxy, for example nginx `client_max_body_size 510m`).
+
 ## Troubleshooting
 - Web shows no courses in http mode: check `NEXT_PUBLIC_API_URL`, CORS_ORIGINS and `GET /actuator/health`.
 - 401 after login: `JWT_SECRET` changed or token expired (24 h).

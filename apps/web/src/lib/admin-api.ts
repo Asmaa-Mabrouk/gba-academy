@@ -4,7 +4,7 @@
 //    pages, which are rendered on the server from the built-in sample data. Use http mode for a real admin.
 import { COURSES, MENTORS, REVIEWS } from "./mock-data";
 import { http, idOf, isMock, K, read, seedUsers, write, ApiError } from "./api";
-import type { AdminMentor, AdminOrder, AdminReview, AdminStats, AdminUser, Bilingual, Course, Mentor, Review, Role } from "./types";
+import type { AdminMentor, AdminOrder, AdminReview, AdminStats, AdminUser, Bilingual, Course, Mentor, PromoCode, Review, Role } from "./types";
 
 export interface AdminApi {
   stats(t: string): Promise<AdminStats>;
@@ -12,6 +12,12 @@ export interface AdminApi {
   course(t: string, id: string): Promise<Course | null>;
   saveCourse(t: string, course: Course, isNew: boolean): Promise<Course>;
   setPublished(t: string, id: string, published: boolean): Promise<void>;
+  approveCourse(t: string, id: string, publish: boolean): Promise<Course>;
+  rejectCourse(t: string, id: string, note: string): Promise<Course>;
+  ensureMeeting(t: string, sessionId: string): Promise<string>;
+  promos(t: string): Promise<PromoCode[]>;
+  savePromo(t: string, p: Partial<PromoCode> & { code?: string }, isNew: boolean): Promise<PromoCode>;
+  deletePromo(t: string, id: string): Promise<void>;
   mentors(t: string): Promise<AdminMentor[]>;
   saveMentor(t: string, m: AdminMentor, isNew: boolean): Promise<AdminMentor>;
   users(t: string): Promise<AdminUser[]>;
@@ -28,6 +34,12 @@ const httpAdmin: AdminApi = {
   course: (t, id) => http<Course>(`/admin/courses/${id}`, { token: t }).catch(() => null),
   saveCourse: (t, c, isNew) => http(isNew ? "/admin/courses" : `/admin/courses/${c.id}`, { method: isNew ? "POST" : "PUT", token: t, body: JSON.stringify(c) }),
   setPublished: (t, id, p) => http(`/admin/courses/${id}/published`, { method: "PUT", token: t, body: JSON.stringify({ published: p }) }),
+  approveCourse: (t, id, publish) => http(`/admin/courses/${id}/approve`, { method: "POST", token: t, body: JSON.stringify({ publish }) }),
+  rejectCourse: (t, id, note) => http(`/admin/courses/${id}/reject`, { method: "POST", token: t, body: JSON.stringify({ note }) }),
+  ensureMeeting: async (t, id) => (await http<{ url: string }>(`/admin/sessions/${id}/meeting`, { method: "POST", token: t })).url,
+  promos: (t) => http("/admin/promos", { token: t }),
+  savePromo: (t, p, isNew) => http(isNew ? "/admin/promos" : `/admin/promos/${p.id}`, { method: isNew ? "POST" : "PUT", token: t, body: JSON.stringify(p) }),
+  deletePromo: (t, id) => http(`/admin/promos/${id}`, { method: "DELETE", token: t }),
   mentors: (t) => http("/admin/mentors", { token: t }),
   saveMentor: (t, m, isNew) => http(isNew ? "/admin/mentors" : `/admin/mentors/${m.id}`, { method: isNew ? "POST" : "PUT", token: t, body: JSON.stringify(m) }),
   users: (t) => http("/admin/users", { token: t }),
@@ -39,8 +51,8 @@ const httpAdmin: AdminApi = {
 };
 
 // ---------------- mock ----------------
-export const MK = { courses: "gba.admin.courses", mentors: "gba.admin.mentors", reviews: "gba.admin.reviews" };
-export const getCourses = () => read<Course[]>(MK.courses, COURSES.map((c) => ({ ...c, published: true })));
+export const MK = { courses: K.adminCourses, mentors: "gba.admin.mentors", reviews: "gba.admin.reviews", promos: K.promos };
+export const getCourses = () => read<Course[]>(MK.courses, COURSES.map((c) => ({ ...c, published: true, status: "approved" as const })));
 export const getMentors = () => read<AdminMentor[]>(MK.mentors, MENTORS.map((m) => ({ ...m, userId: null, userEmail: m.id === "m1" ? "mentor@demo.sa" : null })));
 /** Admin store plus reviews learners posted in mock mode (stored under K.reviews). */
 export const getReviews = () => {
@@ -60,7 +72,7 @@ const mockAdmin: AdminApi = {
     const courses = getCourses();
     const orders = read<AdminOrder[]>(K.orders, []).filter((o) => o.status === "paid");
     return {
-      users: seedUsers().length, courses: courses.length, publishedCourses: courses.filter((c) => c.published !== false).length,
+      users: seedUsers().length, courses: courses.length, publishedCourses: courses.filter((c) => c.published !== false).length, pendingCourses: courses.filter((c) => c.status === "pending").length,
       mentors: getMentors().length, enrollments: Object.values(read<Record<string, unknown[]>>(K.enr, {})).reduce((s, l) => s + l.length, 0),
       orders: orders.length, revenueHalalas: orders.reduce((s, o) => s + o.totalHalalas, 0),
       revenue30dHalalas: orders.filter((o) => Date.now() - +new Date(o.createdAt) < 30 * 864e5).reduce((s, o) => s + o.totalHalalas, 0),
@@ -75,14 +87,65 @@ const mockAdmin: AdminApi = {
     const list = getCourses();
     if (isNew && list.some((x) => x.slug === c.slug)) throw new ApiError("slug_exists");
     const full: Course = {
-      ...c, id: isNew ? `c-${c.slug}` : c.id,
+      ...c, id: isNew ? `c-${c.slug}` : c.id, status: isNew ? "approved" : (list.find((x) => x.id === c.id)?.status ?? "approved"),
       modules: c.modules.map((m) => ({ ...m, id: m.id || uid("m"), lessons: m.lessons.map((l) => ({ ...l, id: l.id || uid("l") })) })),
       offerings: c.offerings.map((o) => ({ ...o, id: o.id || `${c.slug}-${o.mode}`, sessions: o.sessions.map((s) => ({ ...s, id: s.id || uid("s"), seatsLeft: s.seatsLeft ?? s.seats })) })),
     };
     write(MK.courses, isNew ? [...list, full] : list.map((x) => (x.id === full.id ? full : x)));
     return full;
   },
-  async setPublished(t, id, p) { guard(t); write(MK.courses, getCourses().map((c) => (c.id === id ? { ...c, published: p } : c))); },
+  async setPublished(t, id, p) {
+    guard(t);
+    if (p && (getCourses().find((c) => c.id === id)?.status ?? "approved") !== "approved") throw new ApiError("not_approved");
+    write(MK.courses, getCourses().map((c) => (c.id === id ? { ...c, published: p } : c)));
+  },
+  async approveCourse(t, id, publish) {
+    guard(t);
+    const cur = getCourses().find((c) => c.id === id);
+    if (!cur) throw new ApiError("not_found");
+    if (cur.status !== "pending") throw new ApiError("not_pending");
+    const next: Course = { ...cur, status: "approved", published: publish, reviewNote: null };
+    write(MK.courses, getCourses().map((c) => (c.id === id ? next : c)));
+    return next;
+  },
+  async rejectCourse(t, id, note) {
+    guard(t);
+    const cur = getCourses().find((c) => c.id === id);
+    if (!cur) throw new ApiError("not_found");
+    if (cur.status !== "pending") throw new ApiError("not_pending");
+    if (!note.trim()) throw new ApiError("missing_note");
+    const next: Course = { ...cur, status: "rejected", published: false, reviewNote: note.trim() };
+    write(MK.courses, getCourses().map((c) => (c.id === id ? next : c)));
+    return next;
+  },
+  async ensureMeeting(t, sessionId) {
+    guard(t);
+    const url = `about:blank#mock-room-${sessionId}`;
+    write(MK.courses, getCourses().map((c) => ({ ...c, offerings: c.offerings.map((o) => ({ ...o, sessions: o.sessions.map((s) => (s.id === sessionId && !s.joinUrl ? { ...s, joinUrl: url, meetingProvider: "fake" as const } : s)) })) })));
+    return url;
+  },
+  async promos(t) { guard(t); return read<PromoCode[]>(MK.promos, []).map((p) => ({ ...p, expired: !!p.expiresAt && +new Date(p.expiresAt) < Date.now() })); },
+  async savePromo(t, p, isNew) {
+    guard(t);
+    const list = read<PromoCode[]>(MK.promos, []);
+    const code = (p.code ?? "").trim().toUpperCase();
+    if (isNew) {
+      if (!/^[A-Z0-9_-]{3,32}$/.test(code)) throw new ApiError("invalid_code");
+      if (list.some((x) => x.code === code)) throw new ApiError("code_exists");
+    }
+    if (!p.percentOff || p.percentOff < 1 || p.percentOff > 100) throw new ApiError("invalid_percent");
+    const cur = list.find((x) => x.id === p.id);
+    if (p.maxUses != null && p.maxUses < (cur?.usedCount ?? 0)) throw new ApiError("max_uses_below_used");
+    const full: PromoCode = { id: isNew ? uid("p") : p.id!, code: isNew ? code : cur!.code, percentOff: p.percentOff, maxUses: p.maxUses ?? null, usedCount: cur?.usedCount ?? 0, expiresAt: p.expiresAt ?? null, active: p.active ?? true, note: p.note ?? null, createdAt: cur?.createdAt ?? new Date().toISOString() };
+    write(MK.promos, isNew ? [full, ...list] : list.map((x) => (x.id === full.id ? { ...x, ...full } : x)));
+    return full;
+  },
+  async deletePromo(t, id) {
+    guard(t);
+    const p = read<PromoCode[]>(MK.promos, []).find((x) => x.id === id);
+    if (p && p.usedCount > 0) throw new ApiError("promo_in_use");
+    write(MK.promos, read<PromoCode[]>(MK.promos, []).filter((x) => x.id !== id));
+  },
   async mentors(t) { guard(t); return getMentors(); },
   async saveMentor(t, m, isNew) {
     guard(t);

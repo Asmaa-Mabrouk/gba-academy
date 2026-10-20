@@ -5,6 +5,7 @@ import { dateTime, num, tr } from "@/lib/i18n";
 import { mentorApi } from "@/lib/mentor-api";
 import { useAdmin } from "../admin/AdminShell";
 import { errorText, useLoad, failErr } from "../admin/hooks";
+import { notify } from "@/lib/toast";
 import { PageTitle } from "../admin/ui";
 
 export function MentorSessions() {
@@ -12,6 +13,7 @@ export function MentorSessions() {
   const { data } = useLoad(() => mentorApi.sessions(token), [token]);
   const [err, setErr] = useState("");
   const join = async (id: string) => { try { window.open(await mentorApi.joinUrl(token, id), "_blank", "noopener"); } catch (e) { failErr(setErr, errorText(a, e)); } };
+  const copy = async (id: string) => { try { await navigator.clipboard.writeText(await mentorApi.joinUrl(token, id)); notify.success(a.courses.meetingCopied); } catch (e) { failErr(setErr, errorText(a, e)); } };
   const s = a.mp.sessions;
   return (
     <>
@@ -31,6 +33,7 @@ export function MentorSessions() {
               </div>
               <span className="chip bg-sand text-navy">{num(x.enrolled, locale)} / {num(x.seats, locale)} {s.enrolled}</span>
               <Link href={`/${locale}/mentor/courses/c-${x.courseSlug}`} className="text-sm font-bold text-navy hover:underline">{s.edit}</Link>
+              <button className="text-sm font-bold text-navy hover:underline" onClick={() => copy(x.id)}>{a.courses.meetingCopy}</button>
               <button className="btn btn-gold !py-2 text-sm" onClick={() => join(x.id)}>{s.join}</button>
             </li>
           ))}

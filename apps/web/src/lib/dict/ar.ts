@@ -169,6 +169,7 @@ export const ar = {
     live: "مباشر",
     recorded: "مسجّل",
     refundNote: "سياسة الاسترجاع تُعرض قبل الدفع.",
+    cohortBooked: "حجزوا", cohortOf: "من", cohortRunsAt: "تنطلق عند اكتمال {n} متعلمين", cohortRunning: "تأكد انعقاد الدورة", cohortFull: "اكتمل العدد",
     startsOn: "يبدأ في",
     duration: "المدة",
     related: "دورات مشابهة",
@@ -233,6 +234,8 @@ export const ar = {
   },
   checkout: {
     title: "إتمام الدفع",
+    promoLabel: "لديك كود خصم؟", promoPlaceholder: "أدخل الكود", promoApply: "تطبيق", promoRemove: "إزالة", promoApplied: "تم تطبيق الكود", promoDiscount: "خصم الكود",
+    promoErrors: { promo_invalid: "هذا الكود غير صحيح", promo_inactive: "هذا الكود غير مفعّل", promo_expired: "انتهت صلاحية هذا الكود", promo_exhausted: "استُنفد عدد مرات استخدام هذا الكود", promo_used: "سبق أن استخدمت هذا الكود", default: "تعذّر التحقق من الكود" },
     method: "طريقة الدفع",
     mada: "مدى",
     applepay: "Apple Pay",
@@ -270,6 +273,9 @@ export const ar = {
   },
   learn: {
     lessonList: "الدروس",
+    watch: "شاهد الدرس", videoMissing: "لم يُرفع فيديو لهذا الدرس بعد.", materials: "ملفات الدرس", courseMaterials: "ملفات الدورة", download: "تحميل", lessonAbout: "عن الدرس",
+    joinLive: "دخول الجلسة المباشرة", joining: "جارٍ فتح الجلسة…", joinFailed: "تعذّر فتح رابط الجلسة. حاول لاحقًا أو راسل الأكاديمية.", nextSession: "الجلسة القادمة", liveNotice: "الجلسة تُعقد على Google Meet. ادخل قبل الموعد بدقائق.",
+    quiz: "اختبار الدرس", quizIntro: "أجب عن الأسئلة. تحتاج {pct}% للنجاح وإنهاء الدرس.", quizSubmit: "تسليم الإجابات", quizAnswerAll: "أجب عن جميع الأسئلة أولًا", quizPassed: "نجحت! نتيجتك {score}% ({c} من {n})", quizFailed: "نتيجتك {score}% ({c} من {n}). تحتاج {pct}% للنجاح. حاول مرة أخرى.", quizRetry: "إعادة المحاولة", quizCorrect: "إجابة صحيحة", quizWrong: "إجابة خاطئة", quizRight: "الإجابة الصحيحة",
     markDone: "تم إنجاز الدرس",
     done: "مكتمل",
     videoPlaceholder: "هنا يظهر مشغّل الفيديو بعد ربط خدمة استضافة الفيديو.",
