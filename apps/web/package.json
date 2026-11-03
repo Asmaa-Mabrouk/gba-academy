@@ -19,7 +19,7 @@
     "@fontsource/roboto": "^5.3.0",
     "@fontsource/tajawal": "^5.3.0",
     "@tailwindcss/postcss": "^4.3.3",
-    "@types/node": "^26.6.5",
+    "@types/node": "^26.6.6",
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
     "flag-icons": "^7.3.2",
